@@ -22,6 +22,7 @@ export interface ResultPoint { id: string; reference: string; indicated: string;
 export interface ChecklistItem { key: string; label: string; outcome: '' | 'conforme' | 'não conforme' | 'não aplicável'; notes: string; evidence: string }
 export interface Restriction { type: string; description: string; authorizedRange: string; allowedProcesses: string; forbiddenProcesses: string; deadline: string; authorizer: string; evidence: string; notes: string }
 export interface MetrologicalEvent {
+  laboratoryId?: string; traceabilitySelections?: import('./traceability').TraceabilitySelection[]; traceability?: import('./traceability').TraceabilitySnapshot;
   id: string; instrumentId: string; type: 'calibração externa' | 'verificação interna'; date: string; nextDate: string;
   certificateNumber: string; laboratory: string; laboratoryAccredited: YesNo; workflow: Workflow;
   toleranceReferenceDocument: string; processTolerance: string; measurementUncertainty: string; measurementError: string;

@@ -13,7 +13,7 @@ Comando do usuário em 05/10/2026: atualizar este repositório com a versão Met
 | 0 | Fundação | Identidade, Supabase independente, proprietário e Cloudflare publicados; QA público aprovado | Validar login, upload real, isolamento e URL assinada pela interface autenticada |
 | 1 | Cadastro mestre | Implementado e publicado; cadastro conforme as imagens, LI automática, ficha, busca, Excel, cadastros auxiliares e anexos privados | Validar operações reais; preservar a referência obrigatória de Vinício sem reintroduzir campos extras |
 | 2 | Importação da LI | XLSX/XLS/CSV em Worker, mapeamento, prévia, duplicados, confirmação e lotes idempotentes implementados/publicados; referência oficial e sequência armazenadas | Validar importação operacional autenticada com a LI oficial; preservar números, registros existentes e ordem da LI |
-| 3 | Laboratórios e padrões | Não implementada | Cadastros, acreditação/escopo, rastreabilidade, certificados dos padrões e validade na data do controle |
+| 3 | Laboratórios e padrões | Implementada; publicação em andamento | QA operacional autenticado de cadastros, anexos privados, escopo e vínculos com evidências reais |
 | 4 | Eventos metrológicos | Fluxo manual de calibração/verificação e histórico implementados | Completar etapas de envio/retorno, vínculos com laboratório/padrões/procedimentos e validar periodicidades reais |
 | 5 | Certificados | Upload manual, vínculo por ciclo, storage privado e comparação básica de identidade implementados | QA de armazenamento com usuário real e PDFs representativos; completar dados/conferência cadastral e anexos necessários |
 | 6 | Resultados metrológicos | Pontos, grandezas/faixas, erro, incerteza, k, Veff, direção e unidades disponíveis | Validar grupos e diversidade dos certificados reais; completar apresentação e revisão dos resultados por grupo/faixa |
@@ -30,11 +30,11 @@ Comando do usuário em 05/10/2026: atualizar este repositório com a versão Met
 | 17 | Mascote | Componente e eventos preparados, sem vídeos | Integrar vídeos oficiais com transparência real, gatilhos, toggle e reduced-motion; preservar navegação |
 | 18 | Hardening e produção | Parte das proteções e testes já aplicada | QA completo em produção, carga de milhares de instrumentos, segurança/RLS/storage, acessibilidade, recuperação/backup, regressões e PWA quando viável |
 
-Fases 1–2 implementadas e publicadas, com correção cadastral e Número LI automático concluídos em 05/10/2026 (PR #2). Isso não equivale a QA operacional autenticado ou conclusão das fases futuras. A próxima fase de desenvolvimento permanece laboratórios e padrões. Estado atual e evidências em docs/CHECKPOINT.md e docs/PUBLICACAO-CADASTRO-LI-20261005.md.
+Fases 1–2 implementadas e publicadas, com correção cadastral e Número LI automático concluídos em 05/10/2026 (PR #2). Isso não equivale a QA operacional autenticado ou conclusão das fases futuras. A fase 3 foi implementada conforme docs/FASE-3-20261005.md. A próxima fase de desenvolvimento é eventos metrológicos (fase 4), mediante novo comando. Estado atual e evidências em docs/CHECKPOINT.md e docs/PUBLICACAO-CADASTRO-LI-20261005.md.
 
 ## Validações disponíveis
 
-A correção cadastral foi validada por 47 testes de domínio/PostgreSQL, build TypeScript/Vite, Wrangler dry-run e 13 grupos Chromium. Smoke transacional remoto confirmou atribuição e preservação da LI com rollback. CI e deploy repetiram testes; QA público e metadados do código servido aprovados. Login/upload autenticados pela interface continuam pendentes.
+A fase 3 e as regressões cadastrais foram validadas por 59 testes de domínio/PostgreSQL, build TypeScript/Vite e 16 grupos Chromium. A publicação repetirá os testes e o Wrangler dry-run. Smoke transacional remoto confirmou atribuição e preservação da LI com rollback. CI e deploy repetiram testes; QA público e metadados do código servido aprovados. Login/upload autenticados pela interface continuam pendentes.
 
 ## Informações RHDD ainda necessárias
 
