@@ -127,7 +127,7 @@ begin
  end if;
  perform private.refresh_search(target);
  perform private.write_audit(case when old_value is null then 'Cadastro de instrumento' else 'Alteração de instrumento' end,target::text,company,old_value,current_data,
-  case when old_value is null then 'Número LI atribuído automaticamente: '||current_data->>'liNumber'||' • linha '||coalesce(current_data->'liSource'->>'row','') else change_reason end);
+  case when old_value is null then 'Número LI atribuído automaticamente: '||(current_data->>'liNumber')||' • linha '||coalesce(current_data->'liSource'->>'row','') else change_reason end);
  return current_data;
 end$$;
 
