@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Company, Instrument, MetrologicalEvent, AuditEntry, PeriodicityEntry } from '../domain/types';
+import type { Company, Instrument, MetrologicalEvent, AuditEntry, PeriodicityEntry, LIReferenceSummary } from '../domain/types';
 export const PAGE_SIZE=50;
 export interface Query { search:string; company:string; registration:string; page:number }
 export interface Overview { total:number; active:number; released:number; conditioned:number; outOfUse:number; expired:number; due7:number; due30:number; due60:number; awaitingAnalysis:number }
@@ -7,6 +7,12 @@ export function unwrap<T>(result:{data:T|null;error:{message:string}|null}):NonN
 function db(){if(!supabase)throw new Error('Configuração do banco independente pendente.');return supabase;}
 export async function getPermissions():Promise<string[]> { return unwrap(await db().rpc('my_permissions')); }
 export async function getCompanies():Promise<Company[]> {return unwrap(await db().from('companies').select('data').order('name').limit(500)).map(x=>x.data as Company);}
+export async function getLIReference():Promise<LIReferenceSummary|null>{
+ const rows=unwrap(await db().from('li_references').select('prefix,document,source_name,next_number,next_row').order('created_at',{ascending:false}).limit(2));
+ if(!rows.length)return null;
+ if(rows.length>1)throw new Error('Há mais de uma LI oficial registrada. Defina o escopo antes de cadastrar um novo instrumento.');
+ const x=rows[0] as any;return {prefix:x.prefix,document:x.document,sourceName:x.source_name,nextNumber:x.next_number,nextRow:x.next_row,nextCode:`${x.prefix}${String(x.next_number).padStart(Math.max(3,String(x.next_number).length),'0')}`};
+}
 export async function listInstruments(q:Query):Promise<{items:Instrument[];total:number}> {
   let query=db().from('instruments').select('data',{count:'exact'}).order('code').range(q.page*PAGE_SIZE,(q.page+1)*PAGE_SIZE-1);
   const search=q.search.trim().slice(0,150).replace(/[%,()]/g,' ');
