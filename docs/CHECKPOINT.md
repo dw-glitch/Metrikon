@@ -1,78 +1,56 @@
-# Checkpoint de continuidade — atualizado em 05/10/2026
+# Checkpoint de continuidade — 05/10/2026
 
-## Estado real
+## Estado atual
 
-Fase atual: **fases 1 e 2 implementadas e testadas; banco remoto migrado. Publicação da atualização em validação.** A fundação já está publicada no Worker Metrikon. Login/upload real e validação com a LI oficial continuam pendentes. Projeto independente CCP CONSAG, ref `aimvjsbrxnyqjurgicec`. Ver `docs/FASES-1-2-20261005.md`.
+Metrikon publicado em https://metrikon.grcon-qualidade.workers.dev/. Fases 1 e 2 implementadas, testadas e publicadas. Banco remoto independente CCP CONSAG `aimvjsbrxnyqjurgicec`, cinco migrações aplicadas. Login/upload real do proprietário e validação com a LI oficial continuam pendentes; isso não equivale a liberação para uso metrológico real.
 
-Também foi implementado o cadastro mestre inicial e um protótipo manual das fases 4–9 para demonstrar o ciclo. Isso **não significa que todas essas fases estejam concluídas em produção**. Não avançar para importação real, RNC ou liberações operacionais até o ambiente novo ser ativado e os dados/regras correspondentes serem confirmados.
+Código servido: `fe34977b02a3e0273f3260ca0428fbd10f363b33`. Cloudflare version ID: `fd07434b-113c-4bb3-bb06-8af285e19e29`. Execução de publicação aprovada: https://github.com/dw-glitch/GRCON/actions/runs/37324017303. A main do Metrikon pode conter documentação posterior ao código servido. Ver `docs/PUBLICACAO-FASES-1-2.md`.
 
-Identidade final **Metrikon**, confirmada em 05/10/2026. Logo original aplicada; ver `docs/IDENTIDADE-METRIKON.md`. O commit validado atual está em `CHECKPOINT.json` dentro da entrega.
-Commit de fundação: `8bcdb40`.
-A entrega contém um commit posterior de documentação/checkpoint. O HEAD final está no arquivo `CHECKPOINT.json` dentro do pacote e no bundle Git.
+Repositório autorizado: `dw-glitch/Metrikon`, main. Publicação pelo workflow isolado `.github/workflows/deploy-metrikon-cloudflare.yml` no branch `infra/metrikon-cloudflare-deploy` de `dw-glitch/GRCON`. A main e o Worker GRCON permanecem preservados. O login no painel Cloudflare rejeitou a verificação; o fluxo com GitHub Actions/Wrangler e secrets existentes foi confirmado e funcionou.
 
-## Funcionalidades prontas no protótipo
+O usuário autorizou expressamente a continuidade das próximas fases. ConsagVINI permanece excluída. Não criar outro projeto Supabase, não reaplicar migrações e não recriar o proprietário.
 
-- Identidade Metrikon, logo enviada pelo proprietário, navegação, dashboard e busca.
-- Instrumentos/empresas, cadastro em cinco etapas, identificações separadas, ficha, faixas/grandezas e histórico de periodicidade.
-- Evento manual em seis etapas, PDF, comparação de identidade, pontos, checklist, regra estrita e decisão humana.
-- Preservação dos ciclos; rascunho não altera situação operacional; próxima data confirmada manualmente.
-- Exportação Excel filtrada de instrumentos; auditoria demonstrável/exportável.
-- Supabase Auth e acesso ao banco configurados para CCP CONSAG; proprietário real criado, confirmado e ativo.
-- Migração com tabelas, índices, ACL, RLS, RPC, auditoria e storage privado testada em PostgreSQL local via PGlite.
-- Componente/eventos do mascote preparados, sem vídeo ou redesenho.
+## Funcionalidades implementadas
 
-## Testes executados
+- Identidade Metrikon e logo original, navegação, dashboard, busca e exportação Excel filtrada.
+- Empresas, ficha permanente, cadastro em cinco etapas, identificações independentes, grandezas/faixas e histórico de periodicidade.
+- Cadastros auxiliares por empresa: tipos/famílias, áreas, setores, processos e locais, com ativo/inativo e auditoria. Sugestões de preenchimento preservam texto e histórico dos instrumentos.
+- Fotos JPG/PNG/WebP e documentos PDF privados na ficha, até 10 MB, verificação de assinatura antes do envio e metadados reais ao registrar. Documentos vinculados não podem ser apagados pela limpeza de upload.
+- LI XLSX/XLS/CSV em Worker, seleção de aba/cabeçalho, 21 campos independentes, prévia, duplicados/erros, seleção e confirmação humana. Até 20 MB/10.000 linhas/300 colunas; prévia visual de 200 e relatório CSV completo.
+- Importação por lotes atômicos/idempotentes de 500, origem/linha e auditoria. Código existente preservado; UUIDs gerados no servidor; novos instrumentos fora de uso e sem datas/liberação importadas. Falha posterior preserva lotes anteriores e permite retomada na mesma tela.
+- Fluxo manual inicial das fases 4–9: evento, certificado PDF, identidade, pontos, checklist, regra estrita e decisão humana. Cada ciclo permanece independente, rascunho não altera situação e concluído é imutável.
+- Mascote preparado em componente/eventos, sem vídeo oficial.
 
-- `npm test`: **31 testes passaram** (inclui 15 subtestes de PostgreSQL, 6 subtestes de ativação do proprietário e os testes do domínio), após incluir o hardening remoto, a reserva do proprietário e a identidade Metrikon.
-- `npm run build`: TypeScript estrito + compilação de produção passaram.
-- `npm run test:ui`: **10 grupos de verificações Chromium passaram**, sem erros de JavaScript.
-- Cadastro completo → PDF → resultados → checklist → análise de igualdade não conforme → correção → decisão → histórico → próxima data.
-- Busca por série; Excel de um registro com filtro conferido; navegação de todos os menus; retorno entre etapas preservando dados.
-- Desktop 1440/1366/1280 e mobile 390, sem overflow horizontal da página.
-- Demonstração HTML standalone aberta como arquivo local: logo carregada, dashboard funcionando, sem erros de JavaScript e sem instalar Node.
-- Auditoria de dependências de produção: zero vulnerabilidades conhecidas reportadas na verificação desta entrega.
+## Supabase
 
-O agent-browser não conseguiu iniciar seu daemon no ambiente. A verificação foi realizada diretamente com Chromium Headless Shell via Playwright, com servidor e navegador no mesmo processo de teste. Nenhuma verificação de interface foi declarada concluída com base apenas na compilação.
+Proprietário real `vinicio.silva@agnet.com.br`, UUID `87dd90f9-dd3f-4d92-948c-e8ce1afe0094`, já criado/confirmado/ativo; reserva de ativação consumida. Não pedir senha em chat nem recriar conta. Ver `docs/ATIVACAO-20261005.md`.
 
-## Testes ainda pendentes
+Migração nova `20261005135647_master_data_li_import.sql` aplicada. Tabelas `instrument_references`, `instrument_assets`, `instrument_import_batches` com RLS e grants de leitura; escritas por RPCs guardadas. Buckets de anexos e certificados privados e separados.
 
-- Banco e bucket já provisionados no Supabase real, quatro migrações aplicadas e advisors sem ERROR/WARN. SQL transacional remoto aprovado; upload e URLs assinadas com usuário real ainda pendentes.
-- Login, usuários RHDD e permissões reais; convites e recuperação de senha.
-- Login autenticado e upload/leitura/expiração de PDF em produção. A publicação Cloudflare e a verificação pública desktop/mobile já passaram.
-- LI real e diversidade completa de certificados (elétrico multigrandeza, HI-LO, durômetro, esquadro, escaneado, RBC). Os testes de upload desta entrega usam PDF sintético explícito; não representam validação documental dessas famílias.
-- Importação xlsx/xls/csv, laboratórios/padrões, RNC/impactos, QR/etiquetas, competências e integrações nas fases respectivas.
-- Carga de milhares de instrumentos, pesquisa parcial otimizada e central de pendências integral.
+QA SQL transacional remoto aprovado com rollback, sem fixtures persistidas. Última conferência: zero empresas, instrumentos, cadastros auxiliares/lotes reais; bucket de anexos não público. Advisors não trouxeram nova advertência das tabelas; ACL privada intencionalmente inacessível a clientes e índices ainda sem uso são informativos. Auth mantém a advertência de proteção contra senhas vazadas desativada, descrita em `docs/FASES-1-2-20261005.md`.
 
-## Principais arquivos
+## Certificados recebidos
 
-`src/App.tsx`, `src/styles.css`, `src/components/InstrumentForm.tsx`, `src/components/EventForm.tsx`, `src/components/Primitives.tsx`, `src/domain/metrology.ts`, `src/domain/types.ts`, `src/services/repository.ts`, `src/services/supabase.ts`, `supabase/migrations/20261002184038_metrology_foundation.sql`, `tests/database.test.ts`, `tests/metrology.test.ts`, `tests/browser.mjs`, `scripts/build-demo.mjs`, `vercel.json` e documentação em `docs/`.
+14 PDFs individuais foram disponibilizados: 7 HI-LO, 5 calibres de solda, 1 calibrador elétrico e 1 conjunto digitalizado. Extração de texto nos 14, inspeção visual de modelos representativos e OCR das 19 páginas do conjunto digitalizado para identificar sua composição. Há PDFs com certificados dos padrões anexos e páginas de assinatura/avaliação.
 
-## Próxima ação concreta
+Os dois ZIPs grandes retornaram 502 e não foram analisados. Os PDFs individuais permitem preparar os requisitos: grupos por escala/função/modo, unidade e faixa; ângulos em graus/minutos; fonte/medidor; papel do certificado principal e dos padrões; original integral; OCR como sugestão revisável. Ver `docs/REQUISITOS-CERTIFICADOS.md`.
 
-**Correção do usuário em 02/10/2026: ConsagVINI não poderá ser usada.** Em 05/10/2026 o usuário conectou outro destino, CCP CONSAG, criado por ele no plano Free. Banco e bucket já ativados nesse projeto; não criar outro projeto nem reaplicar migrações. O proprietário `vinicio.silva@agnet.com.br` já foi criado pelo usuário, confirmado e ativado automaticamente no UUID `87dd90f9-dd3f-4d92-948c-e8ce1afe0094`. A migração `20261005115131_owner_bootstrap.sql` foi testada localmente e no banco real; a reserva agora está consumida. Não solicitar senha nem recriar conta. Repositório confirmado e autorizado pelo usuário: `dw-glitch/Metrikon`, main, em 05/10/2026. Atualizar a versão anterior com a identidade final Metrikon e manter código/configuração/testes na raiz. O histórico anterior será preservado. A continuidade das fases posteriores aguarda comando explícito do usuário; plano em `docs/FASES-METRIKON.md`. Publicação concluída em 05/10/2026 pelo GitHub Actions com Wrangler e as credenciais existentes da mesma conta Cloudflare do GRCON. Worker independente `metrikon`, URL https://metrikon.grcon-qualidade.workers.dev/. Próxima etapa da fase 0: confirmar Site URL no Supabase, concluir login/upload/URL assinada e QA remoto autenticado antes de retomar a fase 1/2 com a LI oficial.
+Originais, valores individuais, imagens/OCR e dados pessoais não foram enviados ao repositório nem importados no banco. Amostras não são LI e não autorizam cadastro, alteração de datas ou liberação automática.
 
-## Regra para a próxima sessão
+## Validação realizada
 
-Continuar deste checkpoint e desses commits; não recomeçar. Preservar a demonstração e os testes já aprovados. Não publicar as funcionalidades pendentes como concluídas. Os parâmetros RHDD continuam em `docs/PENDENCIAS-RHDD.md`.
+- `npm run verify`: 42 testes de domínio e PostgreSQL e build TypeScript/produção aprovados.
+- `npm run test:ui`: 13 grupos Chromium, sem erros JavaScript; cadastro, evento/igualdade rejeitada, auditoria, catálogo, anexo, importação em Worker, exportação e sessão demonstrativa.
+- Desktop 1440/1366/1280 e mobile 390 sem overflow nos cenários testados.
+- PostgreSQL: UUID forjado, duplicates, lotes idempotentes, rollback, identificação/origem, metadados/autoria do anexo e isolamento entre empresas.
+- GitHub Actions refez verify/UI/dry-run e aprovou deploy/smoke. Conferência adicional no navegador público dos menus e importador.
 
-## Verificação do envio GitHub
+## Pendências e próxima ação
 
-O commit de atualização `07eb441` preserva o upload anterior e organiza os 49 arquivos do código atual na raiz. A primeira execução GitHub Actions aprovou os 31 testes e o build, mas a espera pela mensagem `Local:` no console expirou antes dos testes da interface. O teste agora verifica a resposta HTTP do servidor, registra diagnósticos em caso de falha e usa porta estrita. Essa correção afeta apenas o executor de QA. Os 10 grupos Chromium passaram localmente com `CI=true npm run test:ui`, sem erros de JavaScript. O resultado remoto correspondente é registrado pelo workflow GitHub Actions.
+1. Validar login do proprietário, upload real e URL assinada pela interface. Site URL/recuperação de senha e usuários/permissões RHDD precisam de QA próprio.
+2. Receber LI oficial e confirmar mapeamento, critérios, tolerâncias e periodicidades por processo. Não inventar parâmetros RHDD.
+3. Próximo desenvolvimento: fase 3, laboratórios/padrões e rastreabilidade por evento, seguido de certificados/grupos conforme amostras. Ampliação do fluxo manual continua dependente de critérios e QA operacional.
+4. RNC exige PR CONSAG 220 43; QR/etiquetas, competências, relatórios completos, extração assistida, notificações e mascote oficial permanecem nos checkpoints futuros.
+5. Carga com milhares de registros, busca parcial otimizada e central integral de pendências ainda não concluídas.
 
-## Publicação real Cloudflare — 05/10/2026
-
-- URL: https://metrikon.grcon-qualidade.workers.dev/.
-- Código publicado: `db53260950d612b7e43c6d929b20f04a74230d81`, do repositório `dw-glitch/Metrikon`.
-- Version ID: `757bd589-2a05-4e0d-af78-5c46b87b050e`.
-- Execução aprovada: https://github.com/dw-glitch/GRCON/actions/runs/37317718220.
-- Método: rotina dedicada na branch `infra/metrikon-cloudflare-deploy` do GRCON, usando secrets existentes somente na etapa Wrangler. Essa rotina obtém o código Metrikon por SHA completo; não compila o GRCON nem publica seu Worker.
-- 31 testes, build, Wrangler dry-run e 10 grupos de QA Chromium passaram antes do deploy.
-- Metadados públicos conferidos, HTTP/rotas SPA/PNG/manifesto e tela de login desktop/mobile aprovados; nenhum erro de JavaScript. Navegação real do Cloud Browser confirmou a tela de acesso.
-- A primeira checagem genérica de `/instrumentos` recebeu 404 porque não representava uma navegação de documento; a execução final testa a rota com Chromium e passou.
-- Login do proprietário, upload real e URL assinada permanecem pendentes; publicação não conclui esses critérios da fase 0.
-- O fluxo continua com versão fixada: atualizar o SHA somente depois de uma fase autorizada e validada. Não declarar deploy automático de qualquer commit na main do Metrikon.
-
-
-## Continuidade autorizada — fases 1 e 2
-
-Proprietário autorizou avanço. Cadastros auxiliares por empresa, fotos/documentos privados na ficha e importação assistida XLSX/XLS/CSV agora implementados. 42 testes e 13 grupos Chromium passaram. Nova migração aplicada ao CCP CONSAG; detalhes/limites em `docs/FASES-1-2-20261005.md`. PDFs individuais recebidos e analisados como referência; os ZIPs grandes retornaram 502. Não importar amostras nem liberar instrumentos automaticamente. Preservar o fluxo de publicação com SHA fixado no branch isolado de infraestrutura GRCON.
+Continuar deste estado. Preservar histórico, demonstração e testes. Detalhes de fases/limites em `docs/FASES-1-2-20261005.md`, plano em `docs/FASES-METRIKON.md` e parâmetros pendentes em `docs/PENDENCIAS-RHDD.md`. Não declarar login/upload real, leitura integral dos ZIPs ou fases futuras como concluídos.
