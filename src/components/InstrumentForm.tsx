@@ -15,7 +15,6 @@ export default function InstrumentForm({
 }) {
   const [draft,setDraft]=useState<Instrument>({...initial,contractorEquipment:initial.contractorEquipment||'não'});
   const [errors,setErrors]=useState<Record<string,string>>({});
-  const [reason,setReason]=useState(''),[evidence,setEvidence]=useState('');
 
   function set<K extends keyof Instrument>(key:K,value:Instrument[K]){
     setDraft(current=>({...current,[key]:value}));
@@ -40,7 +39,6 @@ export default function InstrumentForm({
     if(!initial.liNumber&&!liReference)e.liNumber='A LI oficial precisa estar carregada para atribuir o número automaticamente.';
     if(!draft.ownerCompanyId)e.ownerCompanyId='Não foi possível identificar a empresa do espaço de trabalho.';
     if(!draft.periodicityMonths||!Number.isInteger(draft.periodicityMonths)||draft.periodicityMonths<1)e.periodicityMonths='Informe o intervalo de calibrações em meses inteiros positivos.';
-    if(initial.id===draft.id&&initial.liNumber&&initial.periodicityMonths!==draft.periodicityMonths&&(!reason.trim()||!evidence.trim()))e.reason='Alteração da periodicidade exige motivo e evidência.';
     return e;
   }
 
@@ -64,7 +62,8 @@ export default function InstrumentForm({
       area:'',sector:'',responsible:'',controlType:'',notes:'',capabilities:[],
       contractorEquipment:draft.contractorEquipment==='sim'?'sim':'não'
     };
-    await onSave(normalized,reason,evidence);
+    const periodicityChanged=!!initial.liNumber&&initial.periodicityMonths!==normalized.periodicityMonths;
+    await onSave(normalized,periodicityChanged?'Alteração do intervalo pelo cadastro conforme preenchimento atual':'',periodicityChanged?'Cadastro Metrikon':'');
   }}>
     <section className="wizard-body">
       <div className="section-title"><div><span className="eyebrow">CADASTRO DO INSTRUMENTO</span><h3>Dados do Equipamento</h3></div></div>
@@ -101,14 +100,7 @@ export default function InstrumentForm({
         Equipamento de empresa contratada?
       </label>
 
-      {initial.liNumber&&initial.periodicityMonths!==draft.periodicityMonths&&<div className="notice">
-        <h4>Alteração do intervalo de calibração</h4>
-        <p>Anterior: {initial.periodicityMonths??'pendente'} → novo: {draft.periodicityMonths??'pendente'} meses</p>
-        <div className="form-grid">
-          <Field label="Motivo" error={errors.reason}><textarea value={reason} aria-invalid={!!errors.reason} onChange={e=>setReason(e.target.value)}/></Field>
-          <Field label="Evidência / referência" error={errors.reason}><input value={evidence} aria-invalid={!!errors.reason} onChange={e=>setEvidence(e.target.value)}/></Field>
-        </div>
-      </div>}
+
     </section>
     <footer className="wizard-footer">
       <button type="button" className="secondary" onClick={onCancel} disabled={busy}>Cancelar</button>
