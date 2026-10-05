@@ -22,11 +22,21 @@ export async function saveCompany(company:Company):Promise<Company> {return unwr
 export async function loadInstrument(id:string):Promise<Instrument> {const result=await db().from('instruments').select('data').eq('id',id).single();if(result.error)throw new Error(result.error.message);if(!result.data)throw new Error('Instrumento não encontrado ou sem permissão.');return (result.data as unknown as {data:Instrument}).data;}
 export async function listEvents(instrumentId:string):Promise<MetrologicalEvent[]> {return unwrap(await db().from('metrological_events').select('data').eq('instrument_id',instrumentId).order('event_date',{ascending:false})).map(x=>x.data as MetrologicalEvent);}
 export async function saveEvent(event:MetrologicalEvent, conclude:boolean):Promise<MetrologicalEvent> {return unwrap(await db().rpc('save_metrological_event',{payload:event,conclude}));}
+export const CERTIFICATE_ATTACHMENT_LIMIT=16*1024*1024;
+export async function inspectCertificateAttachment(file:File):Promise<{extension:'pdf'|'xlsx'|'xls';mimeType:string}>{
+  if(!file.size||file.size>CERTIFICATE_ATTACHMENT_LIMIT)throw new Error('Selecione PDF, XLSX ou XLS de até 16 MB.');
+  const extension=file.name.split('.').pop()?.toLowerCase();
+  const bytes=new Uint8Array(await file.slice(0,8).arrayBuffer());
+  const text=new TextDecoder().decode(bytes);
+  if(extension==='pdf'&&text.startsWith('%PDF-'))return {extension:'pdf',mimeType:'application/pdf'};
+  if(extension==='xlsx'&&bytes[0]===0x50&&bytes[1]===0x4b&&bytes[2]===0x03&&bytes[3]===0x04)return {extension:'xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'};
+  if(extension==='xls'&&[0xd0,0xcf,0x11,0xe0,0xa1,0xb1,0x1a,0xe1].every((v,i)=>bytes[i]===v))return {extension:'xls',mimeType:'application/vnd.ms-excel'};
+  throw new Error('A extensão e o conteúdo do anexo precisam corresponder a PDF, XLSX ou XLS.');
+}
 export async function uploadCertificate(event:MetrologicalEvent,file:File):Promise<string> {
-  if(!file.name.toLowerCase().endsWith('.pdf')||file.size>20*1024*1024)throw new Error('Selecione PDF de até 20 MB.');
-  if(new TextDecoder().decode(await file.slice(0,5).arrayBuffer())!=='%PDF-')throw new Error('O arquivo não possui cabeçalho PDF válido.');
-  const path=`${event.instrumentId}/${event.id}/${crypto.randomUUID()}.pdf`;
-  unwrap(await db().storage.from('metrology-certificates').upload(path,file,{contentType:'application/pdf',upsert:false}));
+  const checked=await inspectCertificateAttachment(file);
+  const path=`${event.instrumentId}/${event.id}/${crypto.randomUUID()}.${checked.extension}`;
+  unwrap(await db().storage.from('metrology-certificates').upload(path,file,{contentType:checked.mimeType,upsert:false}));
   return path;
 }
 export async function certificateUrl(path:string):Promise<string> {return unwrap(await db().storage.from('metrology-certificates').createSignedUrl(path,60)).signedUrl;}
