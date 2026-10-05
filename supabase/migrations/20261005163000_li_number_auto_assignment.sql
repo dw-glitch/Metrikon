@@ -20,7 +20,7 @@ declare
  source_info jsonb;
 begin
  if not private.has_permission('manage_instruments') or not private.can_access(company) then raise exception 'Permission denied';end if;
- if nullif(btrim(payload->>'description'),'') is null then raise exception 'Instrument description required';end if;
+ if nullif(btrim(payload->>'criticality'),'') is null then raise exception 'Critical equipment field required';end if;
  if not exists(select 1 from public.companies c where c.id=company and coalesce((c.data->>'active')::boolean,false)) then raise exception 'Active company required';end if;
 
  select i.data into old_value from public.instruments i where i.id=target for update;
@@ -44,7 +44,7 @@ begin
    li_code=li_ref.prefix||lpad(li_ref.next_number::text,greatest(3,length(li_ref.next_number::text)),'0');
    li_entry_id=gen_random_uuid();
    li_values=jsonb_build_array(
-    '',li_code,coalesce(payload->>'description',''),coalesce(payload->>'serial',''),coalesce(payload->>'model',''),
+    '',li_code,coalesce(payload->>'criticality',''),coalesce(payload->>'serial',''),coalesce(payload->>'model',''),
     coalesce(payload->>'measurementRange',''),'','','',coalesce(payload->>'periodicityMonths',''),'',
     coalesce(company_name,''),'','','','',''
    );
@@ -55,11 +55,17 @@ begin
   end if;
   current_data=payload||jsonb_build_object(
    'code',li_code,'liNumber',li_code,'liSource',source_info,
+   'description',btrim(payload->>'criticality'),
+   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId:'',
+   'area','','sector','','responsible','','controlType','','notes','','capabilities','[]'::jsonb,
    'operationalStatus','fora de uso','lastControl','','nextControl','','metrologicalStatus','em análise'
   );
  else
   current_data=payload||jsonb_build_object(
    'code',old_value->>'code','liNumber',old_value->>'liNumber','liSource',old_value->'liSource',
+   'description',btrim(payload->>'criticality'),
+   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId:'',
+   'area','','sector','','responsible','','controlType','','notes','','capabilities','[]'::jsonb,
    'operationalStatus',coalesce(old_value->>'operationalStatus','fora de uso'),
    'lastControl',coalesce(old_value->>'lastControl',''),
    'nextControl',coalesce(old_value->>'nextControl',''),
@@ -95,7 +101,7 @@ begin
   select * into li_entry from public.li_entries where instrument_id=target for update;
   if found then
    li_values=li_entry.source_values;
-   li_values=jsonb_set(li_values,'{2}',to_jsonb(coalesce(current_data->>'description','')),false);
+   li_values=jsonb_set(li_values,'{2}',to_jsonb(coalesce(current_data->>'criticality','')),false);
    li_values=jsonb_set(li_values,'{3}',to_jsonb(coalesce(current_data->>'serial','')),false);
    li_values=jsonb_set(li_values,'{4}',to_jsonb(coalesce(current_data->>'model','')),false);
    li_values=jsonb_set(li_values,'{5}',to_jsonb(coalesce(current_data->>'measurementRange','')),false);
@@ -141,13 +147,13 @@ begin
  end if;
  for item in select value from jsonb_array_elements(rows)loop
   draft=item->'instrument';row_number=(item->>'rowNumber')::integer;li_value=btrim(draft->>'liNumber');
-  if row_number is null or row_number<1 or jsonb_typeof(draft) is distinct from 'object' or li_value is null or char_length(li_value) not between 1 and 150 or nullif(btrim(draft->>'description'),'') is null or char_length(draft->>'description')>2000 or (draft->>'ownerCompanyId')::uuid is distinct from target_company then raise exception 'Invalid import row %',row_number;end if;
+  if row_number is null or row_number<1 or jsonb_typeof(draft) is distinct from 'object' or li_value is null or char_length(li_value) not between 1 and 150 or nullif(btrim(draft->>'criticality'),'') is null or char_length(draft->>'criticality')>2000 or (draft->>'ownerCompanyId')::uuid is distinct from target_company then raise exception 'Invalid import row %',row_number;end if;
   if not exists(select 1 from public.li_entries e where lower(btrim(e.code))=lower(li_value) and e.company_id=target_company) then raise exception 'LI number on row % is not in the registered official LI',row_number;end if;
   if exists(select 1 from public.instruments where lower(btrim(data->>'liNumber'))=lower(li_value)) then
    skipped_count=skipped_count+1;results=results||jsonb_build_array(jsonb_build_object('rowNumber',row_number,'code',li_value,'outcome','duplicate'));continue;
   end if;
   draft=draft||jsonb_build_object('id',gen_random_uuid(),'code',li_value,'liNumber',li_value,'ownerCompanyId',target_company,'userCompanyId','',
-   'operationalStatus','fora de uso','lastControl','','nextControl','','registrationStatus','ativo',
+   'description',draft->>'criticality','operationalStatus','fora de uso','lastControl','','nextControl','','registrationStatus','ativo',
    'importReference',jsonb_build_object('file',source_name,'row',row_number,'importedAt',now()));
   if jsonb_typeof(draft->'capabilities') is distinct from 'array' then raise exception 'Invalid measurement capabilities';end if;
   draft=jsonb_set(draft,'{capabilities}',coalesce((select jsonb_agg(cap.value||jsonb_build_object('id',gen_random_uuid()) order by cap.ordinality) from jsonb_array_elements(draft->'capabilities') with ordinality cap(value,ordinality)),'[]'::jsonb));
@@ -173,9 +179,8 @@ $$;
 
 create or replace function private.refresh_search(target_instrument uuid) returns void language sql security definer set search_path='' as $$
  update public.instruments i set search_text=concat_ws(' ',
-  i.data->>'liNumber',i.serial,i.tag,i.data->>'internalId',i.data->>'assetNumber',i.data->>'description',
-  i.data->>'manufacturer',i.data->>'model',i.data->>'workSite',i.data->>'calibrationResponsibleArea',
-  i.data->>'measurementRange',i.data->>'usageRange',i.data->>'verificationDivision',i.data->>'responsible',
+  i.data->>'liNumber',i.serial,i.data->>'criticality',i.data->>'model',i.data->>'workSite',i.data->>'location',
+  i.data->>'calibrationResponsibleArea',i.data->>'process',i.data->>'measurementRange',i.data->>'usageRange',i.data->>'verificationDivision',
   (select c.name from public.companies c where c.id=i.company_id),
   (select string_agg(concat_ws(' ',e.certificate_number,e.data->>'laboratory'),' ') from public.metrological_events e where e.instrument_id=i.id)
  ) where i.id=target_instrument
