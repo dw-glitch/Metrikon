@@ -4,10 +4,19 @@ import {spawn} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import * as XLSX from 'xlsx';
 mkdirSync('test-results',{recursive:true});
-const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','5173'],{stdio:['ignore','pipe','pipe']});
+const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','5173','--strictPort'],{stdio:['ignore','pipe','pipe']});
 let browser;const checks=[];const errors=[];
 try{
- await new Promise((resolve,reject)=>{server.stdout.on('data',b=>{if(b.toString().includes('Local:'))resolve();});server.stderr.on('data',b=>{if(b.toString().includes('error'))reject(new Error(b.toString()));});server.on('exit',code=>reject(new Error(`Dev server exited ${code}`)));setTimeout(()=>reject(new Error('Dev server startup timeout')),15000).unref();});
+ let serverOutput='';let serverExit=null;
+ server.stdout.on('data',b=>{serverOutput+=b.toString();});server.stderr.on('data',b=>{serverOutput+=b.toString();});
+ server.on('exit',(code,signal)=>{serverExit=`code=${code}, signal=${signal}`;});server.on('error',error=>{serverExit=error.message;});
+ const startupDeadline=Date.now()+15000;let ready=false;
+ while(Date.now()<startupDeadline){
+  if(serverExit!==null)throw new Error(`Dev server exited (${serverExit})\n${serverOutput}`);
+  try{const response=await fetch('http://127.0.0.1:5173',{signal:AbortSignal.timeout(1000)});if(response.ok){ready=true;break;}}catch{}
+  await new Promise(resolve=>setTimeout(resolve,100));
+ }
+ if(!ready)throw new Error(`Dev server HTTP readiness timeout\n${serverOutput}`);
  browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
  const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});page.setDefaultTimeout(8000);page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.goto('http://127.0.0.1:5173');await expect(page.getByRole('heading',{name:'Metrikon'})).toBeVisible();await expect(page.locator('vite-error-overlay')).toHaveCount(0);await expect(page).toHaveTitle('Metrikon');await expect(page.getByAltText('Logo Metrikon')).toBeVisible();await expect.poll(()=>page.getByAltText('Logo Metrikon').evaluate(img=>img.complete&&img.naturalWidth===1254)).toBe(true);await page.screenshot({path:'test-results/login-metrikon.png',fullPage:true});const manifest=await (await page.request.get('http://127.0.0.1:5173/manifest.webmanifest')).json();expect(manifest.name).toBe('Metrikon');for(const icon of manifest.icons)expect((await page.request.get(new URL(icon.src,'http://127.0.0.1:5173').href)).ok()).toBe(true);expect((await page.request.get('http://127.0.0.1:5173/favicon.ico')).ok()).toBe(true);checks.push('Metrikon: título, logo original, manifesto e ícones carregados');

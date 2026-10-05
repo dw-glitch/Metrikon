@@ -54,3 +54,7 @@ O agent-browser não conseguiu iniciar seu daemon no ambiente. A verificação f
 ## Regra para a próxima sessão
 
 Continuar deste checkpoint e desses commits; não recomeçar. Preservar a demonstração e os testes já aprovados. Não publicar as funcionalidades pendentes como concluídas. Os parâmetros RHDD continuam em `docs/PENDENCIAS-RHDD.md`.
+
+## Verificação do envio GitHub
+
+O commit de atualização `07eb441` preserva o upload anterior e organiza os 49 arquivos do código atual na raiz. A primeira execução GitHub Actions aprovou os 31 testes e o build, mas a espera pela mensagem `Local:` no console expirou antes dos testes da interface. O teste agora verifica a resposta HTTP do servidor, registra diagnósticos em caso de falha e usa porta estrita. Essa correção afeta apenas o executor de QA. Os 10 grupos Chromium passaram localmente com `CI=true npm run test:ui`, sem erros de JavaScript. O resultado remoto correspondente é registrado pelo workflow GitHub Actions.
