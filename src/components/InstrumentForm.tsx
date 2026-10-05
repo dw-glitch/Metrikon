@@ -42,8 +42,8 @@ export default function InstrumentForm({
     return e;
   }
 
-  const catalogInput=(key:'workSite'|'location'|'process',label:string)=>{
-    const catalogKind:CatalogKind=key==='workSite'?'location':key;
+  const catalogInput=(key:'location'|'process',label:string)=>{
+    const catalogKind:CatalogKind=key;
     const listId=`catalog-${key}`;
     return <Field label={label} error={errors[key]}>
       <input list={listId} value={String(draft[key]||'')} aria-invalid={!!errors[key]} onChange={e=>set(key,e.target.value as never)}/>
@@ -78,7 +78,7 @@ export default function InstrumentForm({
       </div>
       {errors.ownerCompanyId&&<div className="notice danger" role="alert">{errors.ownerCompanyId}</div>}
       <div className="form-grid three">
-        {catalogInput('workSite','Obra *')}
+        <Field label="Obra *" error={errors.workSite}><input value={draft.workSite} aria-invalid={!!errors.workSite} onChange={e=>set('workSite',e.target.value)}/></Field>
         <Field label="Equipamento crítico *" error={errors.criticality}><input value={draft.criticality} aria-invalid={!!errors.criticality} onChange={e=>set('criticality',e.target.value)}/></Field>
         <Field label="Código de série / identificação *" error={errors.serial}><input value={draft.serial} aria-invalid={!!errors.serial} onChange={e=>set('serial',e.target.value)}/></Field>
 
