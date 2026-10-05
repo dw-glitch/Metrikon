@@ -53,7 +53,7 @@ begin
   end loop;
   if coalesce(master.data->>'periodicityMonths','')!~'^[1-9][0-9]*
   if decision not in ('liberado para uso','uso condicionado','fora de uso','segregado') or decision is null then raise exception 'Operational decision required';end if;
-  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF/XLSX/XLS certificate belonging to this event is required';end if;
+  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls)$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF/XLSX/XLS certificate belonging to this event is required';end if;
   if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
   if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
   if decision='uso condicionado' then
@@ -78,7 +78,7 @@ begin
   insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
  end loop;
  if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
+  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls)$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
   insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
  end if;
  if conclude then
@@ -99,7 +99,7 @@ end$$; then raise exception 'Current registration interval required';end if;
   if coalesce(payload->>'acceptedWithRestriction','') not in ('sim','não') then raise exception 'Restricted acceptance answer required';end if;
   if registration_status_value not in ('ativo','inativo','desmobilizado','baixado') then raise exception 'Registration status required';end if;
   if decision not in ('liberado para uso','uso condicionado','fora de uso','segregado') or decision is null then raise exception 'Operational decision required';end if;
-  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
+  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls)$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
   if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
   if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
   if decision='uso condicionado' then
@@ -124,193 +124,7 @@ end$$; then raise exception 'Current registration interval required';end if;
   insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
  end loop;
  if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$;) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
-  if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
-  if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
-  if decision='uso condicionado' then
-   if not private.has_permission('authorize_conditioned') then raise exception 'RHDD conditioned-use authority pending';end if;
-   for field in select unnest(array['type','description','authorizedRange','allowedProcesses','forbiddenProcesses','deadline','authorizer','evidence'])loop if nullif(btrim(restriction->>field),'') is null then raise exception 'Restriction field required: %',field;end if;end loop;
-   if (restriction->>'deadline')::date<event_day then raise exception 'Restriction deadline must not precede event date';end if;
-  end if;
-  -- An earlier cycle can be archived, but cannot replace the current instrument situation.
-  if nullif(master.data->>'lastControl','')::date>event_day then raise exception 'An earlier event cannot replace the latest operational decision';end if;
- end if;
- current_data=payload||jsonb_build_object('workflow',case when conclude then 'concluído' else 'análise em andamento' end,'createdAt',coalesce(old_event.data->>'createdAt',to_char(now() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
- insert into public.metrological_events(id,instrument_id,event_type,event_date,certificate_number,workflow,data)values(target,instrument,payload->>'type',event_day,coalesce(payload->>'certificateNumber',''),current_data->>'workflow',current_data)on conflict(id)do update set event_type=excluded.event_type,event_date=excluded.event_date,certificate_number=excluded.certificate_number,workflow=excluded.workflow,data=excluded.data;
- -- Only draft result rows are replaced. Concluded history cannot enter this branch again.
- delete from public.calibration_points where calibration_points.group_id in(select g.id from public.calibration_result_groups g where event_id=target);
- delete from public.calibration_result_groups where event_id=target;
- delete from public.qualitative_review_items where event_id=target;
- for point in select value from jsonb_array_elements(payload->'points')loop
-  insert into public.calibration_result_groups(event_id,quantity,unit)values(target,coalesce(point->>'quantity',''),coalesce(point->>'unit',''))on conflict(event_id,quantity,unit)do update set quantity=excluded.quantity returning id into group_id;
-  insert into public.calibration_points values((point->>'id')::uuid,group_id,private.parse_decimal(point->>'reference'),private.parse_decimal(point->>'indicated'),private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit',private.parse_decimal(point->>'k'),point->>'veff',point->>'direction',point->>'notes',public.evaluate_metrology_point(private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit'));
- end loop;
- for item in select value from jsonb_array_elements(payload->'checklist')loop
-  insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
- end loop;
- if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$; then raise exception 'Current registration interval required';end if;
-  if coalesce(master.data->>'contractorEquipment','') not in ('sim','não') then raise exception 'Contractor equipment answer required';end if;
-  if event_day is null or nullif(btrim(payload->>'certificateNumber'),'') is null or nullif(btrim(payload->>'laboratory'),'') is null or nullif(btrim(payload->>'rationale'),'') is null then raise exception 'Event date, certificate number, calibration entity and rationale required';end if;
-  if nullif(btrim(payload->>'toleranceReferenceDocument'),'') is null then raise exception 'Tolerance reference document required';end if;
-  if procedure_status='pendente' then raise exception 'Error, uncertainty and positive process tolerance with a common basis are required';end if;
-  if coalesce(payload->>'laboratoryAccredited','') not in ('sim','não') then raise exception 'Laboratory accreditation answer required';end if;
-  if coalesce(payload->>'calibrationAccepted','') not in ('sim','não') then raise exception 'Calibration acceptance answer required';end if;
-  if coalesce(payload->>'acceptedWithRestriction','') not in ('sim','não') then raise exception 'Restricted acceptance answer required';end if;
-  if registration_status_value not in ('ativo','inativo','desmobilizado','baixado') then raise exception 'Registration status required';end if;
-  if decision not in ('liberado para uso','uso condicionado','fora de uso','segregado') or decision is null then raise exception 'Operational decision required';end if;
-  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
-  if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
-  if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
-  if decision='uso condicionado' then
-   if not private.has_permission('authorize_conditioned') then raise exception 'RHDD conditioned-use authority pending';end if;
-   for field in select unnest(array['type','description','authorizedRange','allowedProcesses','forbiddenProcesses','deadline','authorizer','evidence'])loop if nullif(btrim(restriction->>field),'') is null then raise exception 'Restriction field required: %',field;end if;end loop;
-   if (restriction->>'deadline')::date<event_day then raise exception 'Restriction deadline must not precede event date';end if;
-  end if;
-  -- An earlier cycle can be archived, but cannot replace the current instrument situation.
-  if nullif(master.data->>'lastControl','')::date>event_day then raise exception 'An earlier event cannot replace the latest operational decision';end if;
- end if;
- current_data=payload||jsonb_build_object('workflow',case when conclude then 'concluído' else 'análise em andamento' end,'createdAt',coalesce(old_event.data->>'createdAt',to_char(now() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
- insert into public.metrological_events(id,instrument_id,event_type,event_date,certificate_number,workflow,data)values(target,instrument,payload->>'type',event_day,coalesce(payload->>'certificateNumber',''),current_data->>'workflow',current_data)on conflict(id)do update set event_type=excluded.event_type,event_date=excluded.event_date,certificate_number=excluded.certificate_number,workflow=excluded.workflow,data=excluded.data;
- -- Only draft result rows are replaced. Concluded history cannot enter this branch again.
- delete from public.calibration_points where calibration_points.group_id in(select g.id from public.calibration_result_groups g where event_id=target);
- delete from public.calibration_result_groups where event_id=target;
- delete from public.qualitative_review_items where event_id=target;
- for point in select value from jsonb_array_elements(payload->'points')loop
-  insert into public.calibration_result_groups(event_id,quantity,unit)values(target,coalesce(point->>'quantity',''),coalesce(point->>'unit',''))on conflict(event_id,quantity,unit)do update set quantity=excluded.quantity returning id into group_id;
-  insert into public.calibration_points values((point->>'id')::uuid,group_id,private.parse_decimal(point->>'reference'),private.parse_decimal(point->>'indicated'),private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit',private.parse_decimal(point->>'k'),point->>'veff',point->>'direction',point->>'notes',public.evaluate_metrology_point(private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit'));
- end loop;
- for item in select value from jsonb_array_elements(payload->'checklist')loop
-  insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
- end loop;
- if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$;) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$; then raise exception 'Current registration interval required';end if;
-  if coalesce(master.data->>'contractorEquipment','') not in ('sim','não') then raise exception 'Contractor equipment answer required';end if;
-  if event_day is null or nullif(btrim(payload->>'certificateNumber'),'') is null or nullif(btrim(payload->>'laboratory'),'') is null or nullif(btrim(payload->>'rationale'),'') is null then raise exception 'Event date, certificate number, calibration entity and rationale required';end if;
-  if nullif(btrim(payload->>'toleranceReferenceDocument'),'') is null then raise exception 'Tolerance reference document required';end if;
-  if procedure_status='pendente' then raise exception 'Error, uncertainty and positive process tolerance with a common basis are required';end if;
-  if coalesce(payload->>'laboratoryAccredited','') not in ('sim','não') then raise exception 'Laboratory accreditation answer required';end if;
-  if coalesce(payload->>'calibrationAccepted','') not in ('sim','não') then raise exception 'Calibration acceptance answer required';end if;
-  if coalesce(payload->>'acceptedWithRestriction','') not in ('sim','não') then raise exception 'Restricted acceptance answer required';end if;
-  if registration_status_value not in ('ativo','inativo','desmobilizado','baixado') then raise exception 'Registration status required';end if;
-  if decision not in ('liberado para uso','uso condicionado','fora de uso','segregado') or decision is null then raise exception 'Operational decision required';end if;
-  if attachment is null or attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
-  if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
-  if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
-  if decision='uso condicionado' then
-   if not private.has_permission('authorize_conditioned') then raise exception 'RHDD conditioned-use authority pending';end if;
-   for field in select unnest(array['type','description','authorizedRange','allowedProcesses','forbiddenProcesses','deadline','authorizer','evidence'])loop if nullif(btrim(restriction->>field),'') is null then raise exception 'Restriction field required: %',field;end if;end loop;
-   if (restriction->>'deadline')::date<event_day then raise exception 'Restriction deadline must not precede event date';end if;
-  end if;
-  -- An earlier cycle can be archived, but cannot replace the current instrument situation.
-  if nullif(master.data->>'lastControl','')::date>event_day then raise exception 'An earlier event cannot replace the latest operational decision';end if;
- end if;
- current_data=payload||jsonb_build_object('workflow',case when conclude then 'concluído' else 'análise em andamento' end,'createdAt',coalesce(old_event.data->>'createdAt',to_char(now() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
- insert into public.metrological_events(id,instrument_id,event_type,event_date,certificate_number,workflow,data)values(target,instrument,payload->>'type',event_day,coalesce(payload->>'certificateNumber',''),current_data->>'workflow',current_data)on conflict(id)do update set event_type=excluded.event_type,event_date=excluded.event_date,certificate_number=excluded.certificate_number,workflow=excluded.workflow,data=excluded.data;
- -- Only draft result rows are replaced. Concluded history cannot enter this branch again.
- delete from public.calibration_points where calibration_points.group_id in(select g.id from public.calibration_result_groups g where event_id=target);
- delete from public.calibration_result_groups where event_id=target;
- delete from public.qualitative_review_items where event_id=target;
- for point in select value from jsonb_array_elements(payload->'points')loop
-  insert into public.calibration_result_groups(event_id,quantity,unit)values(target,coalesce(point->>'quantity',''),coalesce(point->>'unit',''))on conflict(event_id,quantity,unit)do update set quantity=excluded.quantity returning id into group_id;
-  insert into public.calibration_points values((point->>'id')::uuid,group_id,private.parse_decimal(point->>'reference'),private.parse_decimal(point->>'indicated'),private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit',private.parse_decimal(point->>'k'),point->>'veff',point->>'direction',point->>'notes',public.evaluate_metrology_point(private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit'));
- end loop;
- for item in select value from jsonb_array_elements(payload->'checklist')loop
-  insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
- end loop;
- if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.pdf$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$;) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'A stored PDF certificate belonging to this event is required';end if;
-  if divergent and (nullif(btrim(payload->>'divergenceJustification'),'') is null or not private.has_permission('accept_divergence')) then raise exception 'Divergence requires justification and explicit authorization';end if;
-  if decision='liberado para uso' and (not private.has_permission('release_instrument') or quant_status<>'conforme' or qual_status<>'conforme') then raise exception 'Release requires permission and qualitative + quantitative conformity';end if;
-  if decision='uso condicionado' then
-   if not private.has_permission('authorize_conditioned') then raise exception 'RHDD conditioned-use authority pending';end if;
-   for field in select unnest(array['type','description','authorizedRange','allowedProcesses','forbiddenProcesses','deadline','authorizer','evidence'])loop if nullif(btrim(restriction->>field),'') is null then raise exception 'Restriction field required: %',field;end if;end loop;
-   if (restriction->>'deadline')::date<event_day then raise exception 'Restriction deadline must not precede event date';end if;
-  end if;
-  -- An earlier cycle can be archived, but cannot replace the current instrument situation.
-  if nullif(master.data->>'lastControl','')::date>event_day then raise exception 'An earlier event cannot replace the latest operational decision';end if;
- end if;
- current_data=payload||jsonb_build_object('workflow',case when conclude then 'concluído' else 'análise em andamento' end,'createdAt',coalesce(old_event.data->>'createdAt',to_char(now() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')));
- insert into public.metrological_events(id,instrument_id,event_type,event_date,certificate_number,workflow,data)values(target,instrument,payload->>'type',event_day,coalesce(payload->>'certificateNumber',''),current_data->>'workflow',current_data)on conflict(id)do update set event_type=excluded.event_type,event_date=excluded.event_date,certificate_number=excluded.certificate_number,workflow=excluded.workflow,data=excluded.data;
- -- Only draft result rows are replaced. Concluded history cannot enter this branch again.
- delete from public.calibration_points where calibration_points.group_id in(select g.id from public.calibration_result_groups g where event_id=target);
- delete from public.calibration_result_groups where event_id=target;
- delete from public.qualitative_review_items where event_id=target;
- for point in select value from jsonb_array_elements(payload->'points')loop
-  insert into public.calibration_result_groups(event_id,quantity,unit)values(target,coalesce(point->>'quantity',''),coalesce(point->>'unit',''))on conflict(event_id,quantity,unit)do update set quantity=excluded.quantity returning id into group_id;
-  insert into public.calibration_points values((point->>'id')::uuid,group_id,private.parse_decimal(point->>'reference'),private.parse_decimal(point->>'indicated'),private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit',private.parse_decimal(point->>'k'),point->>'veff',point->>'direction',point->>'notes',public.evaluate_metrology_point(private.parse_decimal(point->>'error'),private.parse_decimal(point->>'uncertainty'),private.parse_decimal(point->>'tolerance'),point->>'unit',point->>'toleranceUnit'));
- end loop;
- for item in select value from jsonb_array_elements(payload->'checklist')loop
-  insert into public.qualitative_review_items values(target,item->>'key',coalesce(item->>'label',''),coalesce(item->>'outcome',''),coalesce(item->>'notes',''),coalesce(item->>'evidence',''));
- end loop;
- if nullif(attachment,'') is not null then
-  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
-  insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
- end if;
- if conclude then
-  insert into public.metrological_decisions values(target,decision,quant_status,qual_status,payload->>'rationale',auth.uid(),now());
-  if decision='uso condicionado' then insert into public.conditional_use_restrictions values(target,restriction,(restriction->>'deadline')::date);end if;
-  update public.instruments set operational_status=decision,next_control=next_day,data=data||jsonb_build_object('operationalStatus',decision,'lastControl',event_day::text,'nextControl',coalesce(next_day::text,''),'metrologicalStatus',case when quant_status='não conforme' or qual_status='não conforme' then 'reprovado' when decision='liberado para uso' then 'válido' else 'em análise' end),updated_at=now()where id=instrument;
- end if;
- perform private.refresh_search(instrument);
- perform private.write_audit(case when conclude then 'Decisão metrológica' else 'Rascunho do controle' end,target::text,master.company_id,old_event.data,current_data,coalesce(payload->>'rationale',''));
- return current_data;
-end$$;) or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
+  if attachment !~ ('^'||instrument::text||'/'||target::text||'/[a-f0-9-]+\.(pdf|xlsx|xls)$') or not exists(select 1 from storage.objects where bucket_id='metrology-certificates' and name=attachment) then raise exception 'Certificate storage reference is invalid';end if;
   insert into public.certificates values(target,coalesce(payload->>'certificateNumber',''),attachment,coalesce(payload->'certificateIdentity','{}'::jsonb),coalesce(payload->>'divergenceJustification',''))on conflict(event_id)do update set number=excluded.number,storage_path=excluded.storage_path,identity=excluded.identity,divergence_justification=excluded.divergence_justification;
  end if;
  if conclude then
