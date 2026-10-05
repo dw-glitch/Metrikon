@@ -10,9 +10,9 @@ Comando do usuário em 05/10/2026: atualizar este repositório com a versão Met
 
 | Fase | Tema | Estado atual | O que falta para concluir |
 |---|---|---|---|
-| 0 | Fundação | Arquitetura, identidade Metrikon, banco separado, storage privado, proprietário e código local validados; repositório criado pelo usuário | Publicar na Cloudflare em Worker/URL próprios; validar login, upload real, acesso isolado e URL assinada pela interface |
-| 1 | Cadastro mestre | Cadastro de instrumentos/empresas, ficha, busca, identificações e faixas implementados | Cadastros próprios de tipos, áreas, setores, processos e locais; fotos/documentos cadastrais; validar operações e escopos reais |
-| 2 | Importação da LI | Não implementada | Importar xlsx/xls/csv com mapeamento, prévia, validação, duplicidades e confirmação; validar a LI oficial; preservar registros existentes |
+| 0 | Fundação | Identidade, Supabase independente, proprietário e Cloudflare publicados; QA público aprovado | Validar login, upload real, isolamento e URL assinada pela interface autenticada |
+| 1 | Cadastro mestre | Implementado e publicado; cadastro conforme as imagens, LI automática, ficha, busca, Excel, cadastros auxiliares e anexos privados | Validar operações reais; preservar a referência obrigatória de Vinício sem reintroduzir campos extras |
+| 2 | Importação da LI | XLSX/XLS/CSV em Worker, mapeamento, prévia, duplicados, confirmação e lotes idempotentes implementados/publicados; referência oficial e sequência armazenadas | Validar importação operacional autenticada com a LI oficial; preservar números, registros existentes e ordem da LI |
 | 3 | Laboratórios e padrões | Não implementada | Cadastros, acreditação/escopo, rastreabilidade, certificados dos padrões e validade na data do controle |
 | 4 | Eventos metrológicos | Fluxo manual de calibração/verificação e histórico implementados | Completar etapas de envio/retorno, vínculos com laboratório/padrões/procedimentos e validar periodicidades reais |
 | 5 | Certificados | Upload manual, vínculo por ciclo, storage privado e comparação básica de identidade implementados | QA de armazenamento com usuário real e PDFs representativos; completar dados/conferência cadastral e anexos necessários |
@@ -30,15 +30,15 @@ Comando do usuário em 05/10/2026: atualizar este repositório com a versão Met
 | 17 | Mascote | Componente e eventos preparados, sem vídeos | Integrar vídeos oficiais com transparência real, gatilhos, toggle e reduced-motion; preservar navegação |
 | 18 | Hardening e produção | Parte das proteções e testes já aplicada | QA completo em produção, carga de milhares de instrumentos, segurança/RLS/storage, acessibilidade, recuperação/backup, regressões e PWA quando viável |
 
-Nenhuma fase é declarada integralmente concluída em produção. A fundação e partes do cadastro/ciclo manual estão implementadas e testadas localmente. As próximas fases complementam essa base.
+Fases 1–2 implementadas e publicadas, com correção cadastral e Número LI automático concluídos em 05/10/2026 (PR #2). Isso não equivale a QA operacional autenticado ou conclusão das fases futuras. A próxima fase de desenvolvimento permanece laboratórios e padrões. Estado atual e evidências em docs/CHECKPOINT.md e docs/PUBLICACAO-CADASTRO-LI-20261005.md.
 
 ## Validações disponíveis
 
-A versão Metrikon foi validada por 31 testes de domínio/PostgreSQL, compilação TypeScript/produção e 10 grupos Chromium, além da demonstração standalone. Houve QA transacional de RLS/ACL no banco real, e confirmação do proprietário ativo e da marca Metrikon. Isso não substitui login/upload autenticados e QA do app publicado.
+A correção cadastral foi validada por 47 testes de domínio/PostgreSQL, build TypeScript/Vite, Wrangler dry-run e 13 grupos Chromium. Smoke transacional remoto confirmou atribuição e preservação da LI com rollback. CI e deploy repetiram testes; QA público e metadados do código servido aprovados. Login/upload autenticados pela interface continuam pendentes.
 
 ## Informações RHDD ainda necessárias
 
-- LI atual dos equipamentos e significado das colunas.
+- QA operacional do mapeamento/importação com a LI oficial já fornecida e armazenada.
 - Pessoas/funções autorizadas, critérios de uso condicionado, tolerâncias e periodicidades por processo.
 - Procedimentos de verificação interna e PR CONSAG 220 43 para RNC/impactos.
 - Modelo e dimensões das etiquetas, exposição dos dados por QR, prazos e destinatários de alertas.
