@@ -1,0 +1,12 @@
+import { emptyInstrument, emptyEvent, newChecklist } from '../domain/metrology';
+import type { DataState, Instrument } from '../domain/types';
+export const companyId='10000000-0000-4000-8000-000000000001';
+export const partnerId='10000000-0000-4000-8000-000000000002';
+export function demoState(): DataState {
+  const specs=[['MET-DEMO-001','Manômetro','Manômetro digital','Pressure Demo','PD-350','DEMO-70725','PI-DEMO-01','0','350','bar'],['MET-DEMO-002','Elétrico','Alicate amperímetro','Electric Demo','AC-600','DEMO-26002','EL-DEMO-02','0','600','A'],['MET-DEMO-003','Dimensional','Calibre HI-LO','Weld Demo','HL-01','DEMO-26003','DM-DEMO-03','0','25','mm'],['MET-DEMO-004','Dureza','Durômetro portátil','Hardness Demo','HRC-50','DEMO-26004','DU-DEMO-04','20','70','HRC'],['MET-DEMO-005','Dimensional','Esquadro de precisão','Dimension Demo','EQ-300','DEMO-26005','DM-DEMO-05','0','300','mm'],['MET-DEMO-006','Pressão','Manômetro analógico','Pressure Demo','MA-100','DEMO-26006','PI-DEMO-06','0','100','bar']];
+  const today=new Date();const date=(days:number)=>new Date(today.getTime()+days*86400000).toISOString().slice(0,10);
+  const instruments:Instrument[]=specs.map((s,i)=>({...emptyInstrument(),id:`20000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,code:s[0],type:s[1],description:s[2],manufacturer:s[3],model:s[4],serial:s[5],tag:s[6],ownerCompanyId:i===5?partnerId:companyId,userCompanyId:companyId,area:'U32',sector:'Qualidade',process:i===2?'Soldagem':'Controle de campo',location:i===5?'Frente de montagem':'Laboratório de obra',responsible:'Responsável de demonstração',controlType:'calibração externa',criticality:'Configuração RHDD pendente',lastControl:date(-60),nextControl:date([-5,6,20,45,90,180][i]),operationalStatus:i===0?'segregado':'fora de uso',capabilities:[{id:crypto.randomUUID(),quantity:s[1],unit:s[9],min:s[7],max:s[8],rangeType:'faixa de indicação'}]}));
+  instruments[1].capabilities.push({id:crypto.randomUUID(),quantity:'Tensão AC',unit:'V',min:'0',max:'750',rangeType:'faixa de indicação'});
+  return {instruments, companies:[{id:companyId,name:'CONSAG • demonstração',cnpj:'',contract:'RHDD',contact:'',active:true},{id:partnerId,name:'Subcontratada • demonstração',cnpj:'',contract:'RHDD',contact:'',active:true}],events:[],audit:[],periodicities:[]};
+}
+export function sampleEvent(instrumentId:string) { const e=emptyEvent(instrumentId);e.checklist=newChecklist();return e; }

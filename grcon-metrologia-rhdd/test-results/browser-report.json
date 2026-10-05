@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "Login/configuração pendente e logo carregados",
+    "Dashboard desktop e dados fictícios",
+    "Todos os itens do menu navegam sem erro",
+    "Cadastro em cinco etapas, múltiplas faixas, voltar preserva dados e periodicidade auditada",
+    "Busca por série e exportação Excel filtrada",
+    "Upload PDF, checklist e igualdade rejeitada na liberação",
+    "Ciclo completo, decisão, histórico imutável e próxima data",
+    "Layouts desktop 1440/1366/1280 sem overflow da página",
+    "Consulta mobile 390px e navegação acessível",
+    "Sessão demonstrativa reinicia sem persistir dados reais"
+  ],
+  "pageErrors": []
+}

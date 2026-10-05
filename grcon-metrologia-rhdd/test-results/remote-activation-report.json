@@ -1,0 +1,23 @@
+{
+  "project": "CCP CONSAG",
+  "date": "2026-10-05",
+  "transactionalSQL": {
+    "passed": true,
+    "fixturesRolledBack": true,
+    "realSchema": true,
+    "remainingAuthUsers": 0,
+    "remainingInstruments": 0,
+    "remainingEvents": 0
+  },
+  "advisors": {
+    "error": 0,
+    "warn": 0,
+    "info": [
+      "Private ACL RLS denies direct client access (no policies)",
+      "Unused indexes on new empty database"
+    ]
+  },
+  "authenticatedUploadVerified": false,
+  "httpLoginVerified": false,
+  "vercelPublished": false
+}

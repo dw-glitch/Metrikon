@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "project": "CCP CONSAG",
+  "checks": [
+    {
+      "name": "anonymous table read",
+      "status": 401,
+      "rejected": true
+    },
+    {
+      "name": "anonymous write RPC",
+      "status": 401,
+      "rejected": true
+    },
+    {
+      "name": "public certificate URL",
+      "status": 400,
+      "rejected": true
+    },
+    {
+      "name": "anonymous PDF upload",
+      "status": 400,
+      "rejected": true
+    }
+  ]
+}
