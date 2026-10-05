@@ -20,7 +20,7 @@ As extensões do cadastro ficam em JSON tipado durante a fundação. Grandezas/f
 |---|---|
 | 1, evolução | instrument_types, areas, sectors, processes, locations, instrument_identifiers (atualmente campos tipados distintos na ficha) |
 | 2 | jobs/linhas/mapeamentos de importação da LI, duplicidades e confirmação assistida |
-| 3 | laboratories, laboratory_accreditations, standards, standard_certificates e vínculos N:N por evento |
+| 3, implementada | calibration_laboratories (acreditação/escopo/intervalo no snapshot), reference_standards, standard_certificates, event_traceability e event_standard_links; anexo privado e versões imutáveis |
 | 5, evolução | attachments, evidências e verificação de assinatura/tipo de documento |
 | 7, evolução | qualitative_reviews, templates versionados do checklist |
 | 8, evolução | quantitative_reviews e versões de tolerâncias por processo, grandeza e faixa |

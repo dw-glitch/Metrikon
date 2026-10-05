@@ -43,7 +43,7 @@ Leia `docs/CHECKPOINT.md`, `docs/ATIVACAO.md`, `docs/ATIVACAO-20261005.md`, `doc
 
 O estado das 19 fases e os critérios de continuidade estão em [`docs/FASES-METRIKON.md`](docs/FASES-METRIKON.md). As fases seguintes serão implementadas somente após comando do usuário, conforme confirmado em 05/10/2026.
 
-A referência oficial de sequência da LI já está modelada; os cadastros de laboratórios/padrões, a central completa de pendências, RNC/impactos, QR/etiquetas, competências, extração assistida, notificações e vídeos são próximas fases. Não há botões que simulem a entrega dessas funcionalidades.
+A referência oficial e LI automática, os cadastros de laboratórios/padrões, certificados versionados e vínculos históricos foram implementados e publicados. Detalhes da fase 3 em docs/FASE-3-20261005.md e docs/PUBLICACAO-FASE-3-20261005.md. A central completa de pendências, RNC/impactos, QR/etiquetas, competências, extração assistida, notificações e vídeos são próximas fases. Não há botões que simulem a entrega dessas funcionalidades.
 
 
 ## Cadastros auxiliares e LI
