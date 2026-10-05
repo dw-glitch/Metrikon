@@ -64,5 +64,31 @@ export async function uploadAsset(instrumentId:string,file:File):Promise<Instrum
  catch(e){await db().storage.from('metrology-instrument-assets').remove([path]);throw e;}
 }
 export async function assetUrl(path:string):Promise<string>{return unwrap(await db().storage.from('metrology-instrument-assets').createSignedUrl(path,60)).signedUrl;}
+
+import type {Laboratory,ReferenceStandard,StandardCertificate,TraceabilityData} from '../domain/traceability';
+async function traceabilityRows<T>(table:string):Promise<T[]> {
+ const all:T[]=[];
+ for(let from=0;;from+=1000){
+  const rows=unwrap(await db().from(table).select('data').order('id').range(from,from+999));
+  all.push(...rows.map(row=>row.data as T));if(rows.length<1000)return all;
+ }
+}
+export async function loadTraceability():Promise<TraceabilityData> {
+ const [laboratories,standards,certificates]=await Promise.all([
+  traceabilityRows<Laboratory>('calibration_laboratories'),traceabilityRows<ReferenceStandard>('reference_standards'),traceabilityRows<StandardCertificate>('standard_certificates')
+ ]);return {laboratories,standards,certificates};
+}
+export async function saveLaboratory(record:Laboratory):Promise<Laboratory>{return unwrap(await db().rpc('save_calibration_laboratory',{payload:record}));}
+export async function saveStandard(record:ReferenceStandard):Promise<ReferenceStandard>{return unwrap(await db().rpc('save_reference_standard',{payload:record}));}
+export async function saveStandardCertificate(record:StandardCertificate,file?:File):Promise<StandardCertificate>{
+ let uploaded='';let payload=record;
+ if(file){const type=await inspectCertificateAttachment(file);uploaded=`${record.standardId}/${record.id}/${crypto.randomUUID()}.${type.extension}`;
+  unwrap(await db().storage.from('metrology-standard-certificates').upload(uploaded,file,{contentType:type.mimeType,upsert:false}));
+  payload={...record,attachmentPath:uploaded,attachmentName:file.name,sizeBytes:file.size};
+ }
+ try{return unwrap(await db().rpc('save_standard_certificate',{payload}));}
+ catch(error){if(uploaded)await db().storage.from('metrology-standard-certificates').remove([uploaded]);throw error;}
+}
+export async function standardCertificateUrl(path:string):Promise<string>{return unwrap(await db().storage.from('metrology-standard-certificates').createSignedUrl(path,60)).signedUrl;}
 export async function checkImportCodes(codes:string[]):Promise<string[]>{const known:string[]=[];for(let start=0;start<codes.length;start+=500){known.push(...unwrap<string[]>(await db().rpc('check_import_codes',{codes:codes.slice(start,start+500)})));}return known;}
 export async function importInstruments(rows:PreviewRow[],companyId:string,sourceName:string,batchId:string):Promise<ImportResult>{return unwrap(await db().rpc('import_instruments',{rows:rows.map(r=>({rowNumber:r.rowNumber,instrument:r.instrument})),target_company:companyId,source_name:sourceName,batch_id:batchId}));}
