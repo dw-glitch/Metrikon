@@ -6,6 +6,8 @@ export type Role = 'owner' | 'quality_admin' | 'analyst' | 'inspector' | 'contra
 export type YesNo = '' | 'sim' | 'não';
 export type ResultBasis = '' | '%' | 'unidade';
 export interface Company { id: string; name: string; cnpj: string; contract: string; contact: string; active: boolean }
+export interface LISource { id?: string; row: number; number: number; code: string; companyId: string; origin: 'original' | 'planned' | 'new'; values: string[]; instrumentId?: string | null }
+export interface LIReferenceSummary { prefix: string; document: string; sourceName: string; nextNumber: number; nextRow: number; nextCode: string }
 export interface Capability { id: string; quantity: string; unit: string; min: string; max: string; rangeType: string }
 export interface Instrument {
   id: string; code: string; type: string; description: string; manufacturer: string; model: string;
@@ -14,7 +16,7 @@ export interface Instrument {
   calibrationResponsibleArea: string; measurementRange: string; usageRange: string; verificationDivision: string;
   contractorEquipment: YesNo; criticality: string; controlType: 'calibração externa' | 'verificação interna' | '';
   periodicityMonths: number | null; registrationStatus: RegistrationStatus; operationalStatus: OperationalStatus;
-  lastControl: string; nextControl: string; notes: string; capabilities: Capability[];
+  lastControl: string; nextControl: string; notes: string; capabilities: Capability[]; liSource?: LISource;
 }
 export interface ResultPoint { id: string; reference: string; indicated: string; error: string; uncertainty: string; tolerance: string; unit: string; toleranceUnit: string; quantity: string; k: string; veff: string; direction: string; notes: string }
 export interface ChecklistItem { key: string; label: string; outcome: '' | 'conforme' | 'não conforme' | 'não aplicável'; notes: string; evidence: string }
