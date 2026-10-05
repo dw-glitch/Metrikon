@@ -1,21 +1,118 @@
 import { useState } from 'react';
-import type { Company, Instrument, LIReferenceSummary } from '../domain/types';
-import { Field, Steps } from './Primitives';
+import type { Instrument, LIReferenceSummary } from '../domain/types';
+import { Field } from './Primitives';
 import type {CatalogEntry,CatalogKind} from '../domain/catalogs';
-import { decimal } from '../domain/metrology';
-export default function InstrumentForm({initial,companies,catalogs,liReference,onSave,onCancel,busy}:{initial:Instrument;companies:Company[];catalogs:CatalogEntry[];liReference:LIReferenceSummary|null;onSave:(i:Instrument,reason:string,evidence:string)=>Promise<void>;onCancel:()=>void;busy:boolean}) {
-  const [draft,setDraft]=useState(initial),[step,setStep]=useState(0),[errors,setErrors]=useState<Record<string,string>>({}),[reason,setReason]=useState(''),[evidence,setEvidence]=useState('');
-  function set<K extends keyof Instrument>(k:K,v:Instrument[K]) {setDraft(d=>({...d,[k]:v}));setErrors(e=>({...e,[k]:''}));}
-  function validate(){const e:Record<string,string>={};if(!draft.description.trim())e.description='Informe a descrição.';if(!initial.liNumber&&!liReference)e.liNumber='A LI oficial precisa estar carregada para atribuir o número automaticamente.';if(!draft.ownerCompanyId)e.ownerCompanyId='Selecione a empresa proprietária.';if(draft.periodicityMonths!==null&&(!Number.isInteger(draft.periodicityMonths)||draft.periodicityMonths<1))e.periodicityMonths='Use meses inteiros positivos ou deixe pendente.';if(initial.periodicityMonths!==draft.periodicityMonths && (!reason.trim() || !evidence.trim()))e.reason='Alteração da periodicidade exige motivo e evidência.';if(draft.capabilities.some(c=>!c.quantity.trim()||!c.unit.trim()||!decimal(c.min)||!decimal(c.max)||decimal(c.min)!.gt(decimal(c.max)!)))e.capabilities='Cada faixa precisa de grandeza, unidade e limites válidos (mínimo ≤ máximo).';return e;}
-  const input=(key:keyof Instrument,label:string,required=false)=><Field key={key} label={label} error={errors[key]}><input list={['type','area','sector','process','location'].includes(key)?`catalog-${key}`:undefined} value={String(draft[key]??'')} required={required} aria-invalid={!!errors[key]} onChange={e=>set(key,e.target.value as never)}/>{['type','area','sector','process','location'].includes(key)&&<datalist id={`catalog-${key}`}>{catalogs.filter(c=>c.active&&c.kind===key as CatalogKind&&c.companyId===draft.ownerCompanyId).map(c=><option key={c.id} value={c.name}/>)}</datalist>}</Field>;
-  return <form className="wizard" onSubmit={async e=>{e.preventDefault();const found=validate();setErrors(found);if(Object.keys(found).length){setStep(found.description||found.liNumber?0:found.ownerCompanyId?2:found.capabilities?1:3);return;}await onSave(draft,reason,evidence);}}>
-    <Steps labels={['Identificação','Características','Uso e responsabilidade','Controle metrológico','Documentos']} step={step}/>
-    <section className="wizard-body"><h3>{['Identificação usada pela equipe','Características e faixas','Uso e responsabilidade','Plano de controle','Documentos e revisão do cadastro'][step]}</h3>
-    {step===0&&<><div className="notice"><strong>Número LI / N-1710 automático</strong><p>{initial.liNumber?`Este instrumento está vinculado a ${initial.liNumber}${initial.liSource?.row?` • linha ${initial.liSource.row} da LI`:''}.`:liReference?`Ao salvar, o Metrikon reservará o próximo número da LI oficial. Previsão atual: ${liReference.nextCode} • linha ${liReference.nextRow}. A sequência é confirmada novamente no banco no momento do cadastro.`:'Carregue a LI oficial antes de criar um novo instrumento.'}</p>{errors.liNumber&&<p className="error">{errors.liNumber}</p>}</div><div className="form-grid">{input('description','Descrição',true)}{input('workSite','Obra')}{input('tag','TAG')}{input('serial','Código de série / identificação')}{input('internalId','Identificação interna')}{input('assetNumber','Patrimônio')}</div></>}
-    {step===1&&<><div className="form-grid">{input('type','Tipo / família')}{input('manufacturer','Fabricante')}{input('model','Modelo')}{input('criticality','Equipamento crítico')}{input('measurementRange','Faixa de medição')}{input('usageRange','Faixa de utilização')}{input('verificationDivision','Valor da divisão de verificação')}</div><h4>Grandezas e faixas detalhadas</h4><p className="muted">A faixa de medição e a faixa de utilização acima preservam o preenchimento atual. As grandezas abaixo complementam o cadastro quando houver mais de uma faixa.</p>{errors.capabilities&&<p className="error">{errors.capabilities}</p>}{draft.capabilities.map((c,index)=><div className="range-row" key={c.id}>{(['quantity','unit','min','max','rangeType'] as const).map((k,i)=><Field key={k} label={['Grandeza','Unidade','Mínimo','Máximo','Tipo de faixa'][i]}><input value={c[k]} onChange={e=>set('capabilities',draft.capabilities.map((v,j)=>j===index?{...v,[k]:e.target.value}:v))}/></Field>)}<button type="button" className="text-button" onClick={()=>set('capabilities',draft.capabilities.filter(x=>x.id!==c.id))}>Remover faixa</button></div>)}<button type="button" className="secondary" onClick={()=>set('capabilities',[...draft.capabilities,{id:crypto.randomUUID(),quantity:'',unit:'',min:'',max:'',rangeType:'faixa de indicação'}])}>Adicionar grandeza / faixa</button></>}
-    {step===2&&<div className="form-grid"><Field label="Empresa proprietária" error={errors.ownerCompanyId}><select value={draft.ownerCompanyId} aria-invalid={!!errors.ownerCompanyId} onChange={e=>set('ownerCompanyId',e.target.value)}><option value="">Selecione</option>{companies.filter(c=>c.active).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field><Field label="Empresa usuária"><select value={draft.userCompanyId} onChange={e=>set('userCompanyId',e.target.value)}><option value="">Configuração pendente</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></Field><Field label="Equipamento de empresa contratada?"><select value={draft.contractorEquipment??''} onChange={e=>set('contractorEquipment',e.target.value as Instrument['contractorEquipment'])}><option value="">Selecione</option><option value="sim">sim</option><option value="não">não</option></select></Field>{input('area','Área')}{input('sector','Setor')}{input('calibrationResponsibleArea','Área/Setor responsável pela calibração')}{input('process','Processo')}{input('location','Local de uso')}{input('responsible','Responsável')}</div>}
-    {step===3&&<><div className="form-grid"><Field label="Tipo de controle"><select value={draft.controlType} onChange={e=>set('controlType',e.target.value as Instrument['controlType'])}><option value="">Configuração RHDD pendente</option><option>calibração externa</option><option>verificação interna</option></select></Field><Field label="Intervalo de calibrações (meses)" error={errors.periodicityMonths} hint="Não há frequência padrão presumida. A próxima data continua sendo confirmada em cada evento."><input type="number" min="1" step="1" value={draft.periodicityMonths??''} onChange={e=>set('periodicityMonths',e.target.value?Number(e.target.value):null)} aria-invalid={!!errors.periodicityMonths}/></Field><Field label="Status do cadastro"><select value={draft.registrationStatus} onChange={e=>set('registrationStatus',e.target.value as Instrument['registrationStatus'])}>{['ativo','inativo','desmobilizado','baixado'].map(x=><option key={x}>{x}</option>)}</select></Field></div>{initial.periodicityMonths!==draft.periodicityMonths&&<div className="notice"><h4>Registrar mudança de periodicidade</h4><p>Anterior: {initial.periodicityMonths??'pendente'} → novo: {draft.periodicityMonths??'pendente'} meses</p><div className="form-grid"><Field label="Motivo" error={errors.reason}><textarea value={reason} aria-invalid={!!errors.reason} onChange={e=>setReason(e.target.value)}/></Field><Field label="Evidência / referência"><input value={evidence} aria-invalid={!!errors.reason} onChange={e=>setEvidence(e.target.value)}/></Field></div></div>}<p className="muted">Situação do equipamento: <strong>{draft.operationalStatus}</strong>. Ela é independente do status cadastral e da aceitação da calibração e é registrada na decisão metrológica.</p></>}
-    {step===4&&<><div className="notice">O preenchimento atual da equipe é a referência inicial do Metrikon. Campos operacionais poderão ser alterados posteriormente somente conforme definição do proprietário. Após salvar, abra a ficha para anexar fotos e documentos gerais.</div><Field label="Observações"><textarea value={draft.notes} onChange={e=>set('notes',e.target.value)}/></Field><dl className="review-summary"><div><dt>Número LI / N-1710</dt><dd>{initial.liNumber||liReference?.nextCode||'Aguardando LI oficial'}</dd></div><div><dt>Descrição</dt><dd>{draft.description||'Pendente'}</dd></div><div><dt>Obra</dt><dd>{draft.workSite||'Pendente'}</dd></div><div><dt>Empresa</dt><dd>{companies.find(c=>c.id===draft.ownerCompanyId)?.name||'Pendente'}</dd></div><div><dt>Intervalo</dt><dd>{draft.periodicityMonths?`${draft.periodicityMonths} meses`:'Configuração RHDD pendente'}</dd></div></dl></>}
-    </section><footer className="wizard-footer"><button type="button" className="secondary" onClick={onCancel} disabled={busy}>Cancelar</button><div>{step>0&&<button type="button" className="secondary" onClick={()=>setStep(s=>s-1)} disabled={busy}>Voltar</button>}{step<4?<button key="continue" type="button" className="primary" onClick={e=>{e.preventDefault();setStep(s=>s+1);}}>Continuar</button>:<button key="save" type="submit" className="primary" disabled={busy}>{busy?'Salvando…':'Salvar instrumento'}</button>}</div></footer>
+
+export default function InstrumentForm({
+  initial,catalogs,liReference,onSave,onCancel,busy
+}:{
+  initial:Instrument;
+  catalogs:CatalogEntry[];
+  liReference:LIReferenceSummary|null;
+  onSave:(i:Instrument,reason:string,evidence:string)=>Promise<void>;
+  onCancel:()=>void;
+  busy:boolean;
+}) {
+  const [draft,setDraft]=useState<Instrument>({...initial,contractorEquipment:initial.contractorEquipment||'não'});
+  const [errors,setErrors]=useState<Record<string,string>>({});
+  const [reason,setReason]=useState(''),[evidence,setEvidence]=useState('');
+
+  function set<K extends keyof Instrument>(key:K,value:Instrument[K]){
+    setDraft(current=>({...current,[key]:value}));
+    setErrors(current=>({...current,[key]:''}));
+  }
+
+  function validate(){
+    const e:Record<string,string>={};
+    const required:Array<[keyof Instrument,string]>=[
+      ['workSite','Obra'],
+      ['criticality','Equipamento crítico'],
+      ['serial','Código de série / identificação'],
+      ['model','Modelo'],
+      ['location','Local de uso'],
+      ['calibrationResponsibleArea','Área/Setor responsável pela calibração do equipamento'],
+      ['process','Processo'],
+      ['measurementRange','Faixa de medição'],
+      ['usageRange','Faixa de utilização'],
+      ['verificationDivision','Valor da divisão de verificação do equipamento']
+    ];
+    for(const [key,label] of required)if(!String(draft[key]??'').trim())e[key]=`Informe ${label.toLowerCase()}.`;
+    if(!initial.liNumber&&!liReference)e.liNumber='A LI oficial precisa estar carregada para atribuir o número automaticamente.';
+    if(!draft.ownerCompanyId)e.ownerCompanyId='Não foi possível identificar a empresa do espaço de trabalho.';
+    if(!draft.periodicityMonths||!Number.isInteger(draft.periodicityMonths)||draft.periodicityMonths<1)e.periodicityMonths='Informe o intervalo de calibrações em meses inteiros positivos.';
+    if(initial.id===draft.id&&initial.liNumber&&initial.periodicityMonths!==draft.periodicityMonths&&(!reason.trim()||!evidence.trim()))e.reason='Alteração da periodicidade exige motivo e evidência.';
+    return e;
+  }
+
+  const catalogInput=(key:'workSite'|'location'|'process',label:string)=>{
+    const catalogKind:CatalogKind=key==='workSite'?'location':key;
+    const listId=`catalog-${key}`;
+    return <Field label={label} error={errors[key]}>
+      <input list={listId} value={String(draft[key]||'')} aria-invalid={!!errors[key]} onChange={e=>set(key,e.target.value as never)}/>
+      <datalist id={listId}>{catalogs.filter(c=>c.active&&c.companyId===draft.ownerCompanyId&&c.kind===catalogKind).map(c=><option key={c.id} value={c.name}/>)}</datalist>
+    </Field>;
+  };
+
+  return <form className="wizard" onSubmit={async e=>{
+    e.preventDefault();
+    const found=validate();setErrors(found);
+    if(Object.keys(found).length)return;
+    const normalized:Instrument={
+      ...draft,
+      description:draft.criticality.trim(),
+      type:'',manufacturer:'',tag:'',internalId:'',assetNumber:'',userCompanyId:'',
+      area:'',sector:'',responsible:'',controlType:'',notes:'',capabilities:[],
+      contractorEquipment:draft.contractorEquipment==='sim'?'sim':'não'
+    };
+    await onSave(normalized,reason,evidence);
+  }}>
+    <section className="wizard-body">
+      <div className="section-title"><div><span className="eyebrow">CADASTRO DO INSTRUMENTO</span><h3>Dados do Equipamento</h3></div></div>
+      <div className="notice">
+        <strong>Número LI / N-1710 automático</strong>
+        <p>{initial.liNumber
+          ?`${initial.liNumber}${initial.liSource?.row?` • linha ${initial.liSource.row} da LI`:''}. Este número não pode ser alterado pelo cadastro.`
+          :liReference
+            ?`Próxima sequência prevista: ${liReference.nextCode} • linha ${liReference.nextRow}. O banco confirma a sequência novamente ao salvar.`
+            :'LI oficial não carregada.'}</p>
+        {errors.liNumber&&<p className="error">{errors.liNumber}</p>}
+      </div>
+      {errors.ownerCompanyId&&<div className="notice danger" role="alert">{errors.ownerCompanyId}</div>}
+      <div className="form-grid three">
+        {catalogInput('workSite','Obra *')}
+        <Field label="Equipamento crítico *" error={errors.criticality}><input value={draft.criticality} aria-invalid={!!errors.criticality} onChange={e=>set('criticality',e.target.value)}/></Field>
+        <Field label="Código de série / identificação *" error={errors.serial}><input value={draft.serial} aria-invalid={!!errors.serial} onChange={e=>set('serial',e.target.value)}/></Field>
+
+        <Field label="Modelo *" error={errors.model}><input value={draft.model} aria-invalid={!!errors.model} onChange={e=>set('model',e.target.value)}/></Field>
+        {catalogInput('location','Local de uso *')}
+        <Field label="Área/Setor responsável pela calibração do equipamento *" error={errors.calibrationResponsibleArea}><input value={draft.calibrationResponsibleArea} aria-invalid={!!errors.calibrationResponsibleArea} onChange={e=>set('calibrationResponsibleArea',e.target.value)}/></Field>
+
+        {catalogInput('process','Processo *')}
+        <Field label="Faixa de medição *" error={errors.measurementRange}><input value={draft.measurementRange} aria-invalid={!!errors.measurementRange} onChange={e=>set('measurementRange',e.target.value)}/></Field>
+        <Field label="Faixa de utilização *" error={errors.usageRange}><input value={draft.usageRange} aria-invalid={!!errors.usageRange} onChange={e=>set('usageRange',e.target.value)}/></Field>
+
+        <Field label="Valor da divisão de verificação do equipamento *" error={errors.verificationDivision}><input value={draft.verificationDivision} aria-invalid={!!errors.verificationDivision} onChange={e=>set('verificationDivision',e.target.value)}/></Field>
+        <Field label="Intervalo de calibrações (em meses) *" error={errors.periodicityMonths}><input type="number" min="1" step="1" value={draft.periodicityMonths??''} aria-invalid={!!errors.periodicityMonths} onChange={e=>set('periodicityMonths',e.target.value?Number(e.target.value):null)}/></Field>
+        <Field label="Status do cadastro *"><select value={draft.registrationStatus} onChange={e=>set('registrationStatus',e.target.value as Instrument['registrationStatus'])}><option value="ativo">ATIVO</option><option value="inativo">INATIVO</option><option value="desmobilizado">DESMOBILIZADO</option><option value="baixado">BAIXADO</option></select></Field>
+      </div>
+
+      <label className="import-confirm">
+        <input type="checkbox" checked={draft.contractorEquipment==='sim'} onChange={e=>set('contractorEquipment',e.target.checked?'sim':'não')}/>
+        Equipamento de empresa contratada?
+      </label>
+
+      {initial.liNumber&&initial.periodicityMonths!==draft.periodicityMonths&&<div className="notice">
+        <h4>Alteração do intervalo de calibração</h4>
+        <p>Anterior: {initial.periodicityMonths??'pendente'} → novo: {draft.periodicityMonths??'pendente'} meses</p>
+        <div className="form-grid">
+          <Field label="Motivo" error={errors.reason}><textarea value={reason} aria-invalid={!!errors.reason} onChange={e=>setReason(e.target.value)}/></Field>
+          <Field label="Evidência / referência" error={errors.reason}><input value={evidence} aria-invalid={!!errors.reason} onChange={e=>setEvidence(e.target.value)}/></Field>
+        </div>
+      </div>}
+    </section>
+    <footer className="wizard-footer">
+      <button type="button" className="secondary" onClick={onCancel} disabled={busy}>Cancelar</button>
+      <button type="submit" className="primary" disabled={busy}>{busy?'Salvando…':'Salvar instrumento'}</button>
+    </footer>
   </form>;
 }
