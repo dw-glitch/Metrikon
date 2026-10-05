@@ -56,7 +56,7 @@ begin
   current_data=payload||jsonb_build_object(
    'code',li_code,'liNumber',li_code,'liSource',source_info,
    'description',btrim(payload->>'criticality'),
-   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId',''',
+   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId','',
    'area','','sector','','responsible','','controlType','','notes','','capabilities','[]'::jsonb,
    'operationalStatus','fora de uso','lastControl','','nextControl','','metrologicalStatus','em análise'
   );
@@ -64,7 +64,7 @@ begin
   current_data=payload||jsonb_build_object(
    'code',old_value->>'code','liNumber',old_value->>'liNumber','liSource',old_value->'liSource',
    'description',btrim(payload->>'criticality'),
-   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId',''',
+   'type','','manufacturer','','tag','','internalId','','assetNumber','','userCompanyId','',
    'area','','sector','','responsible','','controlType','','notes','','capabilities','[]'::jsonb,
    'operationalStatus',coalesce(old_value->>'operationalStatus','fora de uso'),
    'lastControl',coalesce(old_value->>'lastControl',''),
