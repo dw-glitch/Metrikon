@@ -2,7 +2,7 @@
 
 ## Estado real
 
-Fase atual: **FASE 0 — fundação local testada, banco remoto ativado e proprietário real confirmado; publicação Cloudflare e QA público concluídos; QA autenticado pela interface pendente.** Projeto novo: **CCP CONSAG**, ref `aimvjsbrxnyqjurgicec`. ConsagVINI permanece excluída. Ver `docs/ATIVACAO-20261005.md` para evidências e limites da validação.
+Fase atual: **fases 1 e 2 implementadas e testadas; banco remoto migrado. Publicação da atualização em validação.** A fundação já está publicada no Worker Metrikon. Login/upload real e validação com a LI oficial continuam pendentes. Projeto independente CCP CONSAG, ref `aimvjsbrxnyqjurgicec`. Ver `docs/FASES-1-2-20261005.md`.
 
 Também foi implementado o cadastro mestre inicial e um protótipo manual das fases 4–9 para demonstrar o ciclo. Isso **não significa que todas essas fases estejam concluídas em produção**. Não avançar para importação real, RNC ou liberações operacionais até o ambiente novo ser ativado e os dados/regras correspondentes serem confirmados.
 
@@ -71,3 +71,8 @@ O commit de atualização `07eb441` preserva o upload anterior e organiza os 49 
 - A primeira checagem genérica de `/instrumentos` recebeu 404 porque não representava uma navegação de documento; a execução final testa a rota com Chromium e passou.
 - Login do proprietário, upload real e URL assinada permanecem pendentes; publicação não conclui esses critérios da fase 0.
 - O fluxo continua com versão fixada: atualizar o SHA somente depois de uma fase autorizada e validada. Não declarar deploy automático de qualquer commit na main do Metrikon.
+
+
+## Continuidade autorizada — fases 1 e 2
+
+Proprietário autorizou avanço. Cadastros auxiliares por empresa, fotos/documentos privados na ficha e importação assistida XLSX/XLS/CSV agora implementados. 42 testes e 13 grupos Chromium passaram. Nova migração aplicada ao CCP CONSAG; detalhes/limites em `docs/FASES-1-2-20261005.md`. PDFs individuais recebidos e analisados como referência; os ZIPs grandes retornaram 502. Não importar amostras nem liberar instrumentos automaticamente. Preservar o fluxo de publicação com SHA fixado no branch isolado de infraestrutura GRCON.

@@ -44,3 +44,8 @@ Leia `docs/CHECKPOINT.md`, `docs/ATIVACAO.md`, `docs/ATIVACAO-20261005.md`, `doc
 O estado das 19 fases e os critérios de continuidade estão em [`docs/FASES-METRIKON.md`](docs/FASES-METRIKON.md). As fases seguintes serão implementadas somente após comando do usuário, conforme confirmado em 05/10/2026.
 
 A importação real da LI, os cadastros de laboratórios/padrões, a central completa de pendências, RNC/impactos, QR/etiquetas, competências, extração assistida, notificações e vídeos são próximas fases. Não há botões que simulem a entrega dessas funcionalidades.
+
+
+## Cadastros auxiliares e LI
+
+Fases 1 e 2: cadastros auxiliares por empresa, anexos privados na ficha e importação XLSX/XLS/CSV com mapeamento, prévia, proteção de duplicados e confirmação humana. Ver `docs/FASES-1-2-20261005.md` para limites, migração e validações. Novos cadastros importados iniciam fora de uso e sem datas/liberação metrológica.

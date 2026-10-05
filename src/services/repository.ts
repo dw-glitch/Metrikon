@@ -32,3 +32,21 @@ export async function uploadCertificate(event:MetrologicalEvent,file:File):Promi
 export async function certificateUrl(path:string):Promise<string> {return unwrap(await db().storage.from('metrology-certificates').createSignedUrl(path,60)).signedUrl;}
 export async function listAudit():Promise<AuditEntry[]> {return unwrap(await db().from('audit_log').select('*').order('at',{ascending:false}).limit(100)).map(x=>({id:x.id,at:x.at,actor:x.actor||'Sistema',action:x.action,entity:x.entity,before:x.old_data,after:x.new_data,reason:x.reason||''}));}
 export async function listPeriodicity(id:string):Promise<PeriodicityEntry[]> {return unwrap(await db().from('instrument_periodicity_history').select('*').eq('instrument_id',id).order('at',{ascending:false})).map(x=>({id:x.id,instrumentId:x.instrument_id,previous:x.previous_months,next:x.new_months,reason:x.reason,evidence:x.evidence,actor:x.actor,at:x.at}));}
+
+// Auxiliary catalog names are suggestions; instrument snapshots preserve historical text.
+import {inspectAsset,type CatalogEntry,type InstrumentAsset} from '../domain/catalogs';
+import type {ImportResult,PreviewRow} from '../domain/li-import';
+function catalogFromRow(x:any):CatalogEntry{return {id:x.id,companyId:x.company_id,kind:x.kind,name:x.name,notes:x.notes,active:x.active};}
+function assetFromRow(x:any):InstrumentAsset{return {id:x.id,instrumentId:x.instrument_id,name:x.name,mimeType:x.mime_type,sizeBytes:x.size_bytes,storagePath:x.storage_path,createdAt:x.created_at};}
+export async function listCatalogs():Promise<CatalogEntry[]>{const result:CatalogEntry[]=[];for(let offset=0;;offset+=1000){const rows=unwrap(await db().from('instrument_references').select('*').order('id').range(offset,offset+999));result.push(...rows.map(catalogFromRow));if(rows.length<1000)return result;}}
+export async function saveCatalog(entry:CatalogEntry):Promise<CatalogEntry>{return catalogFromRow(unwrap(await db().rpc('save_instrument_reference',{payload:entry})));}
+export async function listAssets(id:string):Promise<InstrumentAsset[]>{return unwrap(await db().from('instrument_assets').select('*').eq('instrument_id',id).order('created_at',{ascending:false})).map(assetFromRow);}
+export async function uploadAsset(instrumentId:string,file:File):Promise<InstrumentAsset>{
+ const checked=await inspectAsset(file);const path=`${instrumentId}/${crypto.randomUUID()}.${checked.extension}`;
+ unwrap(await db().storage.from('metrology-instrument-assets').upload(path,file,{contentType:checked.mimeType,upsert:false}));
+ try{return assetFromRow(unwrap(await db().rpc('register_instrument_asset',{payload:{id:crypto.randomUUID(),instrumentId,name:file.name,mimeType:checked.mimeType,sizeBytes:file.size,storagePath:path}})));}
+ catch(e){await db().storage.from('metrology-instrument-assets').remove([path]);throw e;}
+}
+export async function assetUrl(path:string):Promise<string>{return unwrap(await db().storage.from('metrology-instrument-assets').createSignedUrl(path,60)).signedUrl;}
+export async function checkImportCodes(codes:string[]):Promise<string[]>{const known:string[]=[];for(let start=0;start<codes.length;start+=500){known.push(...unwrap<string[]>(await db().rpc('check_import_codes',{codes:codes.slice(start,start+500)})));}return known;}
+export async function importInstruments(rows:PreviewRow[],companyId:string,sourceName:string,batchId:string):Promise<ImportResult>{return unwrap(await db().rpc('import_instruments',{rows:rows.map(r=>({rowNumber:r.rowNumber,instrument:r.instrument})),target_company:companyId,source_name:sourceName,batch_id:batchId}));}
