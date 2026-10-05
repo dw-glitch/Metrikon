@@ -1,53 +1,59 @@
 # Compatibilidade com o cadastro atualmente utilizado — 05/10/2026
 
-Esta matriz registra a referência inicial determinada pelo proprietário do Metrikon. O objetivo desta entrega é reproduzir o preenchimento utilizado atualmente pela equipe antes de qualquer evolução de processo. Alterações futuras de significado, obrigatoriedade ou decisão dependem de orientação do proprietário.
+Esta é a referência inicial obrigatória determinada pelo proprietário do Metrikon. O cadastro do instrumento deve reproduzir a forma de preenchimento atualmente utilizada pela equipe. Campos, significados, obrigatoriedades e critérios só podem ser alterados futuramente por determinação do proprietário.
 
-| Campo/recurso do aplicativo atual | Correspondência no Metrikon | Situação encontrada | Ajuste implementado |
-|---|---|---|---|
-| Obra | `Instrument.workSite` | Ausente | Campo criado no cadastro, detalhe, busca/exportação e validação de conclusão |
-| Equipamento crítico | `Instrument.criticality` | Existia como “Criticidade” genérica | Rótulo e significado alinhados ao preenchimento atual |
-| Código de série / identificação | `Instrument.serial` | Existia como “Número de série do fabricante” | Rótulo ajustado; valor permanece independente de TAG/patrimônio |
-| Modelo | `Instrument.model` | Existente | Preservado e exigido ao concluir um controle |
-| Local de uso | `Instrument.location` | Existente como “Local” | Rótulo alinhado e preservado |
-| Área/Setor responsável pela calibração | `Instrument.calibrationResponsibleArea` | Ausente | Campo próprio criado; não substitui Área nem Setor |
-| Processo | `Instrument.process` | Existente | Preservado |
-| Faixa de medição | `Instrument.measurementRange` | Existia somente de forma indireta em faixas/grandezas | Campo direto criado; faixas detalhadas continuam disponíveis |
-| Faixa de utilização | `Instrument.usageRange` | Ausente | Campo criado |
-| Entidade calibradora | `MetrologicalEvent.laboratory` | Existia como “Laboratório / executor” | Rótulo alinhado ao uso atual |
-| Data da calibração | `MetrologicalEvent.date` | Existente | Preservado |
-| Intervalo de calibrações (meses) | `Instrument.periodicityMonths` | Existia como periodicidade | Rótulo alinhado; histórico de mudança permanece |
-| Valor da divisão de verificação | `Instrument.verificationDivision` | Ausente | Campo criado |
-| Número do certificado | `MetrologicalEvent.certificateNumber` | Existente | Preservado |
-| Documento de referência da tolerância | `MetrologicalEvent.toleranceReferenceDocument` | Ausente | Campo criado e validado na conclusão |
-| Tolerância do processo | `MetrologicalEvent.processTolerance` | Existia apenas por ponto detalhado | Campo direto criado; tolerância deve ser > 0 |
-| Incerteza de medição | `MetrologicalEvent.measurementUncertainty` | Existia apenas por ponto detalhado | Campo direto criado |
-| Erro de medição | `MetrologicalEvent.measurementError` | Existia apenas por ponto detalhado | Campo direto criado |
-| % ou unidade | `MetrologicalEvent.resultBasis` | Ausente | Campo criado; não há conversão automática |
-| Laboratório acreditado? | `MetrologicalEvent.laboratoryAccredited` | Ausente | Campo sim/não criado; não reprova automaticamente |
-| Calibração aceita? | `MetrologicalEvent.calibrationAccepted` | Ausente | Campo sim/não criado e mantido independente da fórmula e da situação |
-| Status do cadastro | `Instrument.registrationStatus` + snapshot do evento | Já existia no cadastro, não no fechamento do ciclo | Incluído na decisão do ciclo e mantido independente da situação do equipamento |
-| Situação do equipamento | `Instrument.operationalStatus` / `MetrologicalEvent.decision` | Existia como “Situação operacional” | Rótulo alinhado; decisão continua humana |
-| Aceito com restrição? | `MetrologicalEvent.acceptedWithRestriction` | Não havia resposta própria | Campo sim/não criado; restrição estruturada existente continua separada |
-| Equipamento de empresa contratada? | `Instrument.contractorEquipment` | Ausente | Campo sim/não criado |
-| Rastreabilidade/validade dos padrões | Checklist qualitativo | Existente | Preservado explicitamente |
-| Fórmula `|Erro| + |Incerteza| < Tolerância` | `evaluateCurrentProcedure` + PostgreSQL | Existia por ponto detalhado | Aplicada também aos campos diretos; igualdade não conforme; tolerância zero inválida |
-| Anexo do certificado | Storage privado `metrology-certificates` | Somente PDF, até 20 MB | Passa a aceitar PDF/XLSX/XLS, até 16 MB, com assinatura/extensão verificadas no cliente |
-| Importação da LI | Mapeamento assistido + referência oficial | Campos novos não estavam no mapeamento; migração da sequência oficial estava aplicada no banco e ausente no Git | Campos cadastrais adicionados ao mapeamento e migração `rhdd_li_reference` sincronizada no repositório |
-| Detalhes/histórico | Ficha e histórico por ciclo | Não mostravam as novas respostas | Passam a mostrar acreditação, aceitação, restrição, status e situação, além dos dados da fórmula |
-| Exportação Excel | Exportação de instrumentos | Não continha os campos novos | Colunas do preenchimento atual adicionadas |
+## Cadastro do instrumento
 
-## Separações obrigatórias
+A interface de cadastro exibe somente os campos presentes na referência operacional, além do número da LI, que é gerado automaticamente pelo sistema:
 
-O Metrikon não deriva automaticamente um dos seguintes registros a partir de outro:
+| Campo da referência atual | Campo Metrikon | Regra |
+|---|---|---|
+| Obra | `Instrument.workSite` | Visível e obrigatório |
+| Equipamento crítico | `Instrument.criticality` | Visível e obrigatório |
+| Código de série / identificação | `Instrument.serial` | Visível e obrigatório |
+| Modelo | `Instrument.model` | Visível e obrigatório |
+| Local de uso | `Instrument.location` | Visível e obrigatório |
+| Área/Setor responsável pela calibração do equipamento | `Instrument.calibrationResponsibleArea` | Visível e obrigatório |
+| Processo | `Instrument.process` | Visível e obrigatório |
+| Faixa de medição | `Instrument.measurementRange` | Visível e obrigatório |
+| Faixa de utilização | `Instrument.usageRange` | Visível e obrigatório |
+| Intervalo de calibrações (em meses) | `Instrument.periodicityMonths` | Visível e obrigatório |
+| Valor da divisão de verificação do equipamento | `Instrument.verificationDivision` | Visível e obrigatório |
+| Status do cadastro | `Instrument.registrationStatus` | Visível |
+| Equipamento de empresa contratada? | `Instrument.contractorEquipment` | Visível como Sim/Não |
+| Número LI / N-1710 | `Instrument.liNumber` | Exibido, mas nunca digitado pelo usuário |
 
-- laboratório acreditado;
-- calibração aceita;
-- aceito com restrição;
-- status do cadastro;
-- situação do equipamento.
+### Campos retirados da interface de cadastro
 
-Um laboratório marcado como **não acreditado** não causa reprovação automática. A resposta de **Calibração aceita?** também não altera automaticamente o status cadastral nem a situação do equipamento.
+Não fazem parte do preenchimento atual e não devem aparecer no cadastro: **Código interno RHDD, Descrição, Tipo/família, Fabricante, TAG, Identificação interna, Patrimônio, Empresa proprietária, Empresa usuária, Área, Setor, Responsável, Tipo de controle, Grandezas/faixas detalhadas e Observações**.
 
-## Arquivos e análise
+Alguns campos legados permanecem apenas na estrutura interna por compatibilidade com o banco. Para novos cadastros eles são neutralizados no backend e não constituem dados a serem preenchidos. O UUID é exclusivamente uma chave técnica invisível.
 
-O anexo do ciclo aceita **PDF, XLSX ou XLS**, com limite de **16 MB**. A regra quantitativa continua estrita: `|Erro| + |Incerteza| < Tolerância`. Igualdade é não conforme e tolerância zero é inválida. Os pontos detalhados continuam disponíveis como complemento do preenchimento principal e não existe conversão automática de unidades.
+## Número da LI automático
+
+O usuário não informa nem escolhe manualmente o número da LI. A fonte é a referência oficial armazenada em `li_references` e `li_entries`.
+
+Na referência carregada em 05/10/2026, a sequência existente estava planejada até **842**, portanto a próxima posição era:
+
+- número: **CE-5290.00-22313-856-C1O-843**
+- linha: **850**
+
+Esses valores não são hardcoded. `next_number` e `next_row` são lidos e bloqueados transacionalmente pelo banco no instante da criação. Se outro usuário cadastrar antes, o próximo cadastro recebe a sequência atualizada. Edições posteriores não podem alterar o número já vinculado.
+
+Um cadastro que já exista na LI pode ser associado ao número oficial correspondente. Um número digitado/inventado que não exista na referência oficial é rejeitado pelo backend.
+
+## Dados da calibração
+
+O ciclo metrológico mantém os campos da mesma referência operacional: Entidade calibradora, Data da calibração, Número do certificado, Documento de referência da tolerância, Tolerância do processo, Incerteza de medição, Erro de medição, `|Erro| + |Incerteza|`, % ou unidade, laboratório acreditado, validação da rastreabilidade/validade dos padrões, Calibração aceita, Status do cadastro, Aceito com restrição e Situação do equipamento.
+
+Laboratório acreditado, Calibração aceita, Aceito com restrição, Status do cadastro e Situação do equipamento permanecem registros independentes. Nenhum deles deve ser automaticamente inferido de outro.
+
+A regra quantitativa continua estrita: **`|Erro| + |Incerteza| < Tolerância`**. Igualdade é não conforme e tolerância zero é inválida.
+
+## Anexos
+
+O ciclo aceita **PDF, XLSX e XLS**, com limite de **16 MB**, em armazenamento privado. A extensão e a assinatura do arquivo são verificadas antes do envio.
+
+## Regra de continuidade
+
+Qualquer evolução futura deve preservar este cadastro como baseline. Não reintroduzir campos genéricos de gestão metrológica no fluxo principal sem solicitação expressa do proprietário.

@@ -2,11 +2,29 @@ import { emptyInstrument, emptyEvent, newChecklist } from '../domain/metrology';
 import type { DataState, Instrument } from '../domain/types';
 export const companyId='10000000-0000-4000-8000-000000000001';
 export const partnerId='10000000-0000-4000-8000-000000000002';
+const prefix='CE-5290.00-22313-856-C1O-';
 export function demoState(): DataState {
-  const specs=[['MET-DEMO-001','Manômetro','Manômetro digital','Pressure Demo','PD-350','DEMO-70725','PI-DEMO-01','0','350','bar'],['MET-DEMO-002','Elétrico','Alicate amperímetro','Electric Demo','AC-600','DEMO-26002','EL-DEMO-02','0','600','A'],['MET-DEMO-003','Dimensional','Calibre HI-LO','Weld Demo','HL-01','DEMO-26003','DM-DEMO-03','0','25','mm'],['MET-DEMO-004','Dureza','Durômetro portátil','Hardness Demo','HRC-50','DEMO-26004','DU-DEMO-04','20','70','HRC'],['MET-DEMO-005','Dimensional','Esquadro de precisão','Dimension Demo','EQ-300','DEMO-26005','DM-DEMO-05','0','300','mm'],['MET-DEMO-006','Pressão','Manômetro analógico','Pressure Demo','MA-100','DEMO-26006','PI-DEMO-06','0','100','bar']];
-  const today=new Date();const date=(days:number)=>new Date(today.getTime()+days*86400000).toISOString().slice(0,10);
-  const instruments:Instrument[]=specs.map((s,i)=>({...emptyInstrument(),id:`20000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,code:s[0],type:s[1],description:s[2],manufacturer:s[3],model:s[4],serial:s[5],tag:s[6],ownerCompanyId:i===5?partnerId:companyId,userCompanyId:companyId,area:'U32',sector:'Qualidade',process:i===2?'Soldagem':'Controle de campo',location:i===5?'Frente de montagem':'Laboratório de obra',responsible:'Responsável de demonstração',controlType:'calibração externa',workSite:'Obra RHDD • demonstração',calibrationResponsibleArea:'Qualidade',measurementRange:`${s[7]} a ${s[8]} ${s[9]}`,usageRange:`${s[7]} a ${s[8]} ${s[9]}`,verificationDivision:`0,1 ${s[9]}`,contractorEquipment:i===5?'sim':'não',criticality:'Instrumento controlado',lastControl:date(-60),nextControl:date([-5,6,20,45,90,180][i]),operationalStatus:i===0?'segregado':'fora de uso',capabilities:[{id:crypto.randomUUID(),quantity:s[1],unit:s[9],min:s[7],max:s[8],rangeType:'faixa de indicação'}]}));
-  instruments[1].capabilities.push({id:crypto.randomUUID(),quantity:'Tensão AC',unit:'V',min:'0',max:'750',rangeType:'faixa de indicação'});
-  return {instruments, companies:[{id:companyId,name:'CONSAG • demonstração',cnpj:'',contract:'RHDD',contact:'',active:true},{id:partnerId,name:'Subcontratada • demonstração',cnpj:'',contract:'RHDD',contact:'',active:true}],events:[],audit:[],periodicities:[]};
+  const specs=[
+    ['801','MANÔMETRO DIGITAL','MD-801','PD-350','0 A 350 BAR','0 A 300 BAR','0,1 BAR'],
+    ['802','ALICATE AMPERÍMETRO','AA-802','AC-600','0 A 600 A','0 A 500 A','0,1 A'],
+    ['803','HI-LO (ESCALA)','153202','WG-601','0 A 45 MM','0 A 45 MM','0,1 MM'],
+    ['804','DURÔMETRO PORTÁTIL','DP-804','HRC-50','20 A 70 HRC','20 A 65 HRC','0,1 HRC'],
+    ['805','ESQUADRO DE PRECISÃO','EP-805','EQ-300','0 A 300 MM','0 A 250 MM','0,1 MM'],
+    ['806','MANÔMETRO ANALÓGICO','MA-806','MA-100','0 A 100 BAR','0 A 90 BAR','0,1 BAR']
+  ];
+  const today=new Date(),date=(days:number)=>new Date(today.getTime()+days*86400000).toISOString().slice(0,10);
+  const instruments:Instrument[]=specs.map((s,i)=>{
+    const li=`${prefix}${s[0]}`;
+    return {...emptyInstrument(),
+      id:`20000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,
+      code:li,liNumber:li,liSource:{row:808+i,number:Number(s[0]),code:li,companyId:i===5?partnerId:companyId,origin:'planned',values:[],instrumentId:`20000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`},
+      description:s[1],criticality:s[1],serial:s[2],model:s[3],ownerCompanyId:i===5?partnerId:companyId,
+      workSite:'RHDD',process:'QUALIDADE',location:i===5?'FRENTE DE MONTAGEM':'FRENTE DE SERVIÇO',
+      calibrationResponsibleArea:'QUALIDADE',measurementRange:s[4],usageRange:s[5],verificationDivision:s[6],
+      contractorEquipment:i===5?'sim':'não',periodicityMonths:12,lastControl:date(-60),nextControl:date([-5,6,20,45,90,180][i]),
+      operationalStatus:i===0?'segregado':'fora de uso'
+    };
+  });
+  return {instruments,companies:[{id:companyId,name:'CONSAG',cnpj:'',contract:'RHDD',contact:'',active:true},{id:partnerId,name:'Subcontratada • demonstração',cnpj:'',contract:'RHDD',contact:'',active:true}],events:[],audit:[],periodicities:[]};
 }
 export function sampleEvent(instrumentId:string) { const e=emptyEvent(instrumentId);e.checklist=newChecklist();return e; }
