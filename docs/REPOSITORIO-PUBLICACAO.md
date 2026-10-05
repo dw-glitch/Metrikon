@@ -1,55 +1,71 @@
 # Repositório e publicação Metrikon
 
-## Repositório confirmado em 05/10/2026
+## Publicado em 05/10/2026
 
-O usuário criou https://github.com/dw-glitch/Metrikon, branch principal `main`, e enviou manualmente a versão anterior extraída do ZIP. Em seguida autorizou sua atualização para a entrega Metrikon, com nome e logo finais.
+URL: https://metrikon.grcon-qualidade.workers.dev/
 
-A atualização organiza o código na raiz (`package.json`, `src`, `public`, `supabase`, `tests`, `docs`) e inclui `.github/workflows/verify.yml`, `.gitignore` e `.env.example`. O commit de upload anterior permanece no histórico. Os arquivos compilados, resultados temporários de testes e bundle antigo não são necessários na árvore atual: o build é reproduzido a partir do código e o histórico preserva o envio anterior.
-
-A demonstração entregue como `Metrikon_Demonstracao.html` é isolada e usa dados fictícios; pode ser regenerada com `node scripts/build-demo.mjs`. O código operacional recebe a configuração por variáveis de ambiente. Nunca enviar `.env.local`, segredos ou node_modules ao repositório.
-
-O commit na branch principal é o checkpoint oficial para as próximas fases. Consultar `docs/FASES-METRIKON.md`. As fases seguintes aguardam comando do usuário; atualização no GitHub não representa publicação Cloudflare nem validação de login real.
-
-## Destino escolhido: Cloudflare Workers com Static Assets
-
-Em 05/10/2026 o usuário escolheu Cloudflare para publicar pelo navegador. O repositório inclui `wrangler.jsonc`, Wrangler com versão fixa no lockfile, Node 24 em `.node-version`, rotas SPA e `public/_headers`. O Vite copia os arquivos públicos para `dist`. Não é necessário instalar Node no computador do usuário.
-
-### Passos pelo navegador
-
-1. Entre em https://dash.cloudflare.com/ e selecione sua conta.
-2. Abra **Workers & Pages** → **Create application** → **Import a repository / Get started**. Conecte o GitHub e autorize o repositório `dw-glitch/Metrikon`.
-3. Selecione o repositório e preencha:
-
-| Campo | Valor |
+| Evidência | Valor |
 |---|---|
-| Worker name / Nome | `metrikon` (deve coincidir com `wrangler.jsonc`) |
-| Production branch / Branch | `main` |
-| Root directory / Diretório raiz | Vazio, ou `.` se o painel exigir um valor |
-| Build command | `npm run verify` |
-| Deploy command | `npm run deploy:cloudflare` |
+| Código | `dw-glitch/Metrikon`, SHA `db53260950d612b7e43c6d929b20f04a74230d81` |
+| Worker | `metrikon` |
+| Conta | Mesma conta Cloudflare usada pelo GRCON |
+| Version ID | `757bd589-2a05-4e0d-af78-5c46b87b050e` |
+| Execução | https://github.com/dw-glitch/GRCON/actions/runs/37317718220 |
 
-A saída `dist` já está definida em `wrangler.jsonc`; não é necessário um campo de output directory no fluxo Workers. O build executa os testes de domínio/banco local e compila o frontend. Os testes Chromium continuam no GitHub Actions.
+A publicação foi concluída por **GitHub Actions → Wrangler → Workers Static Assets**, repetindo o método efetivamente usado pelo GRCON. O painel Cloudflare apresentou erro de verificação neste navegador; o fluxo de CI usa as credenciais já cadastradas no GitHub e dispensa esse login interativo.
 
-4. Em **Build variables and secrets**, adicione as três variáveis de `deployment-public.env.example` e `NODE_VERSION=24`. Não configurar somente variáveis de runtime: o Vite precisa dos valores durante a compilação. A chave `sb_publishable_...` é pública. Nunca substituir por secret key ou service_role.
-5. Use a criação automática do token de implantação oferecida pela Cloudflare. Não copiar tokens para o código ou para o chat.
-6. Clique **Save and Deploy**. Aguarde build bem-sucedido e implantação ativa. Abra a URL fornecida, no formato `https://metrikon.<subdominio-da-conta>.workers.dev`; o endereço exato só existe após a publicação.
-7. No Supabase **CCP CONSAG** (`aimvjsbrxnyqjurgicec`), em **Authentication → URL Configuration**, defina o **Site URL** com o endereço HTTPS publicado. A opção controla redirecionamentos de autenticação e links de e-mail. Não reaplicar migrações nem recriar o proprietário.
-8. Acesse o app com `vinicio.silva@agnet.com.br` e a senha que o proprietário já criou. Verifique login, cadastro autorizado, upload de um PDF de teste, reabertura do certificado, isolamento por empresa e expiração das URLs assinadas. Só então considerar a fase 0 remota concluída.
+## Onde a rotina executa
 
-### Continuidade
+As credenciais `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` já existem no repositório GRCON. Secrets de repositório não são automaticamente compartilhados com Metrikon e seus valores não são recuperáveis pela conexão. Por isso a rotina de publicação está em uma branch dedicada do GRCON:
 
-Commits na branch de produção conectada disparam builds e publicações. As próximas fases continuam aguardando comando do usuário. Não enviar fases incompletas a `main` com publicação automática habilitada. Um domínio próprio é opcional e pode ser vinculado depois em **Settings → Domains & Routes**.
+- Branch: `infra/metrikon-cloudflare-deploy`.
+- Arquivo: `.github/workflows/deploy-metrikon-cloudflare.yml`.
+- Link: https://github.com/dw-glitch/GRCON/blob/infra/metrikon-cloudflare-deploy/.github/workflows/deploy-metrikon-cloudflare.yml.
 
-O banco, autenticação e PDFs continuam no Supabase independente. O plano Cloudflare tem limites de compilação e de recursos dinâmicos; não significa implantação ilimitada de todos os serviços.
+Essa rotina baixa somente o código do **Metrikon**, fixado em SHA completo. A branch principal e a rotina existente de deploy do GRCON não foram modificadas. O novo Worker tem nome `metrikon` e publica `dist/` do Metrikon. Banco, autenticação e PDFs permanecem no projeto independente Supabase **CCP CONSAG**, ref `aimvjsbrxnyqjurgicec`.
 
-### Validação da preparação
+A chave frontend de `deployment-public.env.example` é pública e é carregada durante o build. Os secrets Cloudflare são fornecidos exclusivamente na etapa de implantação e não são incorporados ao frontend, aos metadados, aos arquivos de QA ou à documentação.
 
-Em 05/10/2026, `npm run verify` passou os 31 testes e a compilação; `npm run deploy:cloudflare -- --dry-run` validou o pacote sem publicar. O servidor local Wrangler serviu `/` e uma rota interna com HTTP 200, título Metrikon e os headers configurados; a logo retornou PNG. A implantação real, login e upload na URL pública continuam pendentes.
+## Etapas executadas
 
-### Referências oficiais
+1. Conferência do destino e da configuração pública independente.
+2. Node 24 e `npm ci --ignore-scripts`.
+3. `npm run verify`: 31 testes e compilação de produção.
+4. Wrangler dry-run e 10 grupos Chromium com `npm run test:ui`.
+5. Inclusão de `deployment-meta.json` no pacote, com app, repositório, SHA do código e execução.
+6. `npm run deploy:cloudflare -- --config wrangler.jsonc --name metrikon`.
+7. Conferência dos metadados servidos, página principal, rota SPA por navegação real, logo PNG, manifesto e tela de acesso desktop/mobile, sem erros de JavaScript.
+8. Evidências em `metrikon-cloudflare-qa` na execução GitHub Actions.
 
-- https://developers.cloudflare.com/workers/ci-cd/builds/
-- https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+Todas as etapas passaram na execução final. O endereço público também foi aberto no Cloud Browser, com formulário de login e logo visíveis.
+
+## Próximas publicações
+
+A rotina atual usa uma versão fixada e **não publica automaticamente qualquer commit na main do Metrikon**. As fases posteriores continuam aguardando comando do usuário.
+
+Após concluir e validar uma fase autorizada:
+
+1. Integrar o código ao `dw-glitch/Metrikon` e registrar seu SHA completo.
+2. Atualizar no workflow da branch dedicada os pontos que fixam/conferem esse SHA: checkout, geração de metadados e validação dos metadados/registro de evidências.
+3. Enviar a atualização dessa rotina para `infra/metrikon-cloudflare-deploy`; o push no arquivo de workflow dispara a publicação.
+4. Acompanhar o resultado e conferir a nova versão em `/deployment-meta.json`.
+
+Não é necessário copiar tokens para o chat ou para o código. A autonomia do código Metrikon permanece no seu próprio repositório; essa branch é apenas o executor de publicação com credenciais existentes. Uma transferência futura da rotina ao próprio repositório Metrikon exige configurar ali os secrets de implantação por um canal seguro.
+
+## Critérios ainda pendentes da fase 0
+
+- No Supabase CCP CONSAG, conferir **Authentication → URL Configuration → Site URL** como `https://metrikon.grcon-qualidade.workers.dev/`. O deploy não alterou essa configuração de autenticação.
+- Login autenticado do proprietário `vinicio.silva@agnet.com.br` com a senha já criada pelo usuário.
+- Cadastro autorizado, envio de um PDF de teste, reabertura por URL assinada, isolamento por empresa e expiração da URL.
+
+Não recriar o proprietário, não reaplicar migrações e não usar ConsagVINI. A publicação e o QA público não substituem esses testes autenticados.
+
+## Configuração alternativa pelo painel
+
+Caso seja desejada posteriormente uma integração nativa Cloudflare Builds, o repositório também suporta Worker `metrikon`, branch `main`, raiz vazia, build `npm run verify` e deploy `npm run deploy:cloudflare`. Usar `NODE_VERSION=24` e as variáveis de build de `deployment-public.env.example`. Esse método pelo painel não foi o usado nesta publicação.
+
+## Referências oficiais
+
+- https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
 - https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/
-- https://developers.cloudflare.com/workers/static-assets/headers/
 - https://supabase.com/docs/guides/auth/redirect-urls

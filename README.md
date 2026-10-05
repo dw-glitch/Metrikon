@@ -4,7 +4,7 @@ Novo produto independente. **Nenhum sistema ou banco GRCON foi alterado.**
 
 ## O que esta entrega representa
 
-Fundação e cadastro mestre, com protótipo demonstrável do ciclo manual de controle metrológico. Em 05/10/2026, o banco e o bucket privado de certificados foram ativados no novo projeto Supabase **CCP CONSAG**, separado da ConsagVINI. O frontend React/TypeScript está configurado para esse destino. O proprietário real já foi criado, confirmado e ativado. **Login/upload autenticado pela interface e publicação Cloudflare ainda estão pendentes.** O repositório de continuidade é `dw-glitch/Metrikon`. A fase 0 não será declarada integralmente concluída antes desses testes ponta a ponta.
+Fundação e cadastro mestre, com protótipo demonstrável do ciclo manual de controle metrológico. Em 05/10/2026, o banco e o bucket privado de certificados foram ativados no novo projeto Supabase **CCP CONSAG**, separado da ConsagVINI. O frontend React/TypeScript está configurado para esse destino. O proprietário real já foi criado, confirmado e ativado. **Publicado no Cloudflare em https://metrikon.grcon-qualidade.workers.dev/. Login/upload autenticado pela interface ainda estão pendentes.** O repositório de continuidade é `dw-glitch/Metrikon`. A fase 0 não será declarada integralmente concluída antes desses testes ponta a ponta.
 
 A demonstração usa dados fictícios e mantém dados/PDFs **apenas em memória nesta sessão**. Não realiza liberações operacionais reais. É possível revisar o fluxo pelo arquivo `Metrikon_Demonstracao.html`, sem Node ou instalação. A configuração de produção nunca está embutida nesse arquivo.
 
@@ -39,7 +39,7 @@ npm run dev
 
 ## Próxima ação
 
-Leia `docs/CHECKPOINT.md`, `docs/ATIVACAO.md`, `docs/ATIVACAO-20261005.md`, `docs/PRIMEIRO-ACESSO.md`, `docs/REPOSITORIO-PUBLICACAO.md` e `docs/PENDENCIAS-RHDD.md`. Não reaplicar as migrações já executadas. O projeto novo foi criado pelo usuário no plano Free; não houve criação de outro projeto nem mudança de plano nesta ativação. ConsagVINI continua excluída. O proprietário `vinicio.silva@agnet.com.br` já está confirmado e ativo. O usuário criou `dw-glitch/Metrikon` e autorizou a atualização da versão anterior em 05/10/2026. O código está organizado na raiz; a próxima etapa da fase 0 é publicação Cloudflare e QA autenticado.
+Leia `docs/CHECKPOINT.md`, `docs/ATIVACAO.md`, `docs/ATIVACAO-20261005.md`, `docs/PRIMEIRO-ACESSO.md`, `docs/REPOSITORIO-PUBLICACAO.md` e `docs/PENDENCIAS-RHDD.md`. Não reaplicar as migrações já executadas. O projeto novo foi criado pelo usuário no plano Free; não houve criação de outro projeto nem mudança de plano nesta ativação. ConsagVINI continua excluída. O proprietário `vinicio.silva@agnet.com.br` já está confirmado e ativo. O usuário criou `dw-glitch/Metrikon` e autorizou a atualização da versão anterior em 05/10/2026. O código está organizado na raiz; a publicação Cloudflare e o QA público foram concluídos; a próxima etapa da fase 0 é QA autenticado. O método reproduzível de deploy está em `docs/REPOSITORIO-PUBLICACAO.md`.
 
 O estado das 19 fases e os critérios de continuidade estão em [`docs/FASES-METRIKON.md`](docs/FASES-METRIKON.md). As fases seguintes serão implementadas somente após comando do usuário, conforme confirmado em 05/10/2026.
 
