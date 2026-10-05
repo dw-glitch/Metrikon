@@ -10,7 +10,7 @@ Comando do usuário em 05/10/2026: atualizar este repositório com a versão Met
 
 | Fase | Tema | Estado atual | O que falta para concluir |
 |---|---|---|---|
-| 0 | Fundação | Arquitetura, identidade Metrikon, banco separado, storage privado, proprietário e código local validados; repositório criado pelo usuário | Publicar em projeto/URL próprios; validar login, upload real, acesso isolado e URL assinada pela interface |
+| 0 | Fundação | Arquitetura, identidade Metrikon, banco separado, storage privado, proprietário e código local validados; repositório criado pelo usuário | Publicar na Cloudflare em Worker/URL próprios; validar login, upload real, acesso isolado e URL assinada pela interface |
 | 1 | Cadastro mestre | Cadastro de instrumentos/empresas, ficha, busca, identificações e faixas implementados | Cadastros próprios de tipos, áreas, setores, processos e locais; fotos/documentos cadastrais; validar operações e escopos reais |
 | 2 | Importação da LI | Não implementada | Importar xlsx/xls/csv com mapeamento, prévia, validação, duplicidades e confirmação; validar a LI oficial; preservar registros existentes |
 | 3 | Laboratórios e padrões | Não implementada | Cadastros, acreditação/escopo, rastreabilidade, certificados dos padrões e validade na data do controle |

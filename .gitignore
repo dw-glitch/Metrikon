@@ -4,6 +4,7 @@ dist/
 .env.*
 !.env.example
 .vercel/
+.wrangler/
 test-results/
 supabase/.temp/
 *.zip

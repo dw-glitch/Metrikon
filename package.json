@@ -10,7 +10,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "verify": "npm test && npm run build",
     "preview": "vite preview --host 0.0.0.0",
-    "test:ui": "node tests/browser.mjs"
+    "test:ui": "node tests/browser.mjs",
+    "deploy:cloudflare": "wrangler deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
@@ -31,6 +32,7 @@
     "supabase": "2.119.0",
     "tsx": "4.20.5",
     "typescript": "5.9.2",
-    "vite": "8.3.2"
+    "vite": "8.3.2",
+    "wrangler": "4.147.0"
   }
 }

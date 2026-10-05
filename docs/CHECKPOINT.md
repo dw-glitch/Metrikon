@@ -38,7 +38,7 @@ O agent-browser não conseguiu iniciar seu daemon no ambiente. A verificação f
 
 - Banco e bucket já provisionados no Supabase real, quatro migrações aplicadas e advisors sem ERROR/WARN. SQL transacional remoto aprovado; upload e URLs assinadas com usuário real ainda pendentes.
 - Login, usuários RHDD e permissões reais; convites e recuperação de senha.
-- Publicação Vercel em novo projeto/URL e QA de produção.
+- Publicação Cloudflare em novo projeto/URL e QA de produção.
 - LI real e diversidade completa de certificados (elétrico multigrandeza, HI-LO, durômetro, esquadro, escaneado, RBC). Os testes de upload desta entrega usam PDF sintético explícito; não representam validação documental dessas famílias.
 - Importação xlsx/xls/csv, laboratórios/padrões, RNC/impactos, QR/etiquetas, competências e integrações nas fases respectivas.
 - Carga de milhares de instrumentos, pesquisa parcial otimizada e central de pendências integral.
@@ -49,7 +49,7 @@ O agent-browser não conseguiu iniciar seu daemon no ambiente. A verificação f
 
 ## Próxima ação concreta
 
-**Correção do usuário em 02/10/2026: ConsagVINI não poderá ser usada.** Em 05/10/2026 o usuário conectou outro destino, CCP CONSAG, criado por ele no plano Free. Banco e bucket já ativados nesse projeto; não criar outro projeto nem reaplicar migrações. O proprietário `vinicio.silva@agnet.com.br` já foi criado pelo usuário, confirmado e ativado automaticamente no UUID `87dd90f9-dd3f-4d92-948c-e8ce1afe0094`. A migração `20261005115131_owner_bootstrap.sql` foi testada localmente e no banco real; a reserva agora está consumida. Não solicitar senha nem recriar conta. Repositório confirmado e autorizado pelo usuário: `dw-glitch/Metrikon`, main, em 05/10/2026. Atualizar a versão anterior com a identidade final Metrikon e manter código/configuração/testes na raiz. O histórico anterior será preservado. A continuidade das fases posteriores aguarda comando explícito do usuário; plano em `docs/FASES-METRIKON.md`. Próxima etapa da fase 0: publicação em novo projeto Vercel, com raiz do repositório e variáveis de `deployment-public.env.example`. Depois concluir login/upload/URL assinada e QA remoto da fase 0 antes de retomar a fase 1/2 com a LI oficial.
+**Correção do usuário em 02/10/2026: ConsagVINI não poderá ser usada.** Em 05/10/2026 o usuário conectou outro destino, CCP CONSAG, criado por ele no plano Free. Banco e bucket já ativados nesse projeto; não criar outro projeto nem reaplicar migrações. O proprietário `vinicio.silva@agnet.com.br` já foi criado pelo usuário, confirmado e ativado automaticamente no UUID `87dd90f9-dd3f-4d92-948c-e8ce1afe0094`. A migração `20261005115131_owner_bootstrap.sql` foi testada localmente e no banco real; a reserva agora está consumida. Não solicitar senha nem recriar conta. Repositório confirmado e autorizado pelo usuário: `dw-glitch/Metrikon`, main, em 05/10/2026. Atualizar a versão anterior com a identidade final Metrikon e manter código/configuração/testes na raiz. O histórico anterior será preservado. A continuidade das fases posteriores aguarda comando explícito do usuário; plano em `docs/FASES-METRIKON.md`. Próxima etapa da fase 0: publicação em novo Worker Cloudflare, com raiz do repositório e variáveis de `deployment-public.env.example`. Depois concluir login/upload/URL assinada e QA remoto da fase 0 antes de retomar a fase 1/2 com a LI oficial.
 
 ## Regra para a próxima sessão
 

@@ -4,9 +4,9 @@
 
 1. Usar exclusivamente o projeto independente **CCP CONSAG** (`aimvjsbrxnyqjurgicec`), já provisionado pelo usuário. ConsagVINI permanece excluída.
 2. Banco, bucket privado e proprietário confirmado/ativo já foram verificados. As quatro migrações estão aplicadas, incluindo a identidade Metrikon. Não repetir provisionamento nem cadastro do proprietário.
-3. Usar o repositório existente `dw-glitch/Metrikon`, atualizado por autorização do usuário, e conectar um novo projeto Vercel chamado `metrikon`. Seguir `docs/REPOSITORIO-PUBLICACAO.md`.
+3. Usar o repositório existente `dw-glitch/Metrikon`, atualizado por autorização do usuário, e conectar um novo Worker Cloudflare chamado `metrikon`. Seguir `docs/REPOSITORIO-PUBLICACAO.md`.
 4. Configurar as variáveis de `deployment-public.env.example`, incluindo `VITE_APP_NAME=Metrikon`, URL do projeto independente e somente chave pública publishable.
-5. Verificar READY, URL própria, login, RBAC, permissões negadas, upload real, URL assinada, exportação, histórico e ciclo completo. Só então declarar a fase 0 remota concluída.
+5. Verificar deploy ativo, URL própria, login, RBAC, permissões negadas, upload real, URL assinada, exportação, histórico e ciclo completo. Só então declarar a fase 0 remota concluída.
 
 ## Limites a conferir antes da ativação
 
