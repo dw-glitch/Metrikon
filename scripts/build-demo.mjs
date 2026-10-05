@@ -1,0 +1,10 @@
+import {build} from 'esbuild';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+const output=process.argv[2]||'../artifacts/Metrikon_Demonstracao.html';
+const result=await build({entryPoints:['src/main.tsx'],bundle:true,format:'iife',platform:'browser',target:'es2022',minify:true,write:false,outfile:'demo.js',define:{'import.meta.env':'{}','process.env.NODE_ENV':'"production"'},loader:{'.png':'dataurl'}});
+const logo='data:image/png;base64,'+readFileSync('public/metrikon-logo.png').toString('base64');
+const js=result.outputFiles.find(f=>f.path.endsWith('.js')).text.replaceAll('"/metrikon-logo.png"',JSON.stringify(logo)).replaceAll('</script','<\\/script');
+const css=result.outputFiles.find(f=>f.path.endsWith('.css')).text;
+mkdirSync(output.slice(0,output.lastIndexOf('/')),{recursive:true});
+writeFileSync(output,`<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#006f96"><link rel="icon" href="${logo}"><title>Metrikon • Demonstração</title><style>${css}</style></head><body><div id="root"></div><script>${js}</script></body></html>`);
+console.log(`Demonstração independente criada: ${output}`);
