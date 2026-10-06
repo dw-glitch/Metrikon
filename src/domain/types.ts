@@ -1,5 +1,6 @@
 export type RegistrationStatus = 'ativo' | 'inativo' | 'desmobilizado' | 'baixado';
-export type OperationalStatus = 'liberado para uso' | 'uso condicionado' | 'fora de uso' | 'segregado';
+// Legacy values remain readable; new SCC registrations use the seven SCC situations.
+export type OperationalStatus = 'aguardando envio para calibração' | 'desmobilizado' | 'disponível para transferência' | 'disponível para uso' | 'em uso' | 'enviado para calibração' | 'enviado para manutenção' | 'liberado para uso' | 'uso condicionado' | 'fora de uso' | 'segregado';
 export type MetrologicalStatus = 'válido' | 'a vencer' | 'vencido' | 'em análise' | 'reprovado';
 export type Workflow = 'aguardando envio' | 'em calibração' | 'certificado recebido' | 'análise em andamento' | 'concluído';
 export type Role = 'owner' | 'quality_admin' | 'analyst' | 'inspector' | 'contractor' | 'viewer';
@@ -14,7 +15,7 @@ export interface Instrument {
   serial: string; tag: string; internalId: string; assetNumber: string; liNumber: string; ownerCompanyId: string;
   userCompanyId: string; workSite: string; area: string; sector: string; process: string; location: string; responsible: string;
   calibrationResponsibleArea: string; measurementRange: string; usageRange: string; verificationDivision: string;
-  contractorEquipment: YesNo; criticality: string; controlType: 'calibração externa' | 'verificação interna' | '';
+  contractorEquipment: YesNo; contractorCompanyName?: string; criticality: string; controlType: 'calibração externa' | 'verificação interna' | '';
   periodicityMonths: number | null; registrationStatus: RegistrationStatus; operationalStatus: OperationalStatus;
   lastControl: string; nextControl: string; notes: string; capabilities: Capability[]; liSource?: LISource;
 }

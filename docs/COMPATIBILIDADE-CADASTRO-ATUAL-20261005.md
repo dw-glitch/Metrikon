@@ -56,4 +56,6 @@ O ciclo aceita **PDF, XLSX e XLS**, com limite de **16 MB**, em armazenamento pr
 
 ## Regra de continuidade
 
+Detalhamento autorizado em 06/10/2026 pelos três prints adicionais: campo Empresa contratada quando o equipamento é de contratada; texto Restrição quando aceito com restrição; pergunta completa e destacada de rastreabilidade/validade dos certificados dos padrões quando a calibração não foi realizada em laboratório acreditado; sete situações exatas do SCC; renovação limitada aos dados da nova calibração, preservando identificação e parâmetros fixos. Ver CONFORMIDADE-SCC-PRINTS-20261006.md.
+
 Qualquer evolução futura deve preservar este cadastro como baseline. Não reintroduzir campos genéricos de gestão metrológica no fluxo principal sem solicitação expressa do proprietário.
