@@ -12,6 +12,8 @@ Aplicativo: https://metrikon.grcon-qualidade.workers.dev/
 
 O cálculo do fluxo mínimo compara |Erro| + |Incerteza| ≤ Tolerância conforme a anotação de 06/10/2026. Aprovação continua humana. O plano anterior de 19 fases foi substituído; ver docs/PLANO-MINIMO-20261006.md.
 
+Detalhes SCC confirmados nos prints: Restrição e Empresa contratada condicionais, pergunta de padrões destacada somente para laboratório não acreditado, sete situações do equipamento e identificação/parâmetros preservados na renovação. Matriz em docs/CONFORMIDADE-SCC-PRINTS-20261006.md; publicação em docs/PUBLICACAO-SCC-20261006.md.
+
 ## Desenvolvimento
 Node 24, React/TypeScript/Vite, Supabase independente CCP CONSAG e Cloudflare Worker metrikon. Configuração pública em deployment-public.env.example; nenhuma chave privilegiada no frontend.
 

@@ -10,6 +10,10 @@ O rascunho inicial reserva a LI e cria a ficha fora de uso, sem certificado vige
 
 Novas propostas calculam |erro| + |incerteza| ≤ tolerância, com precisão decimal, conforme a anotação de 06/10. A interface oferece um botão para aplicar a sugestão de aceitação. Respostas manuais, situação operacional e aprovação permanecem decisões explícitas. Eventos históricos mantêm os dados e o critério estrito anterior.
 
+O detalhamento dos prints SCC acrescenta Restrição e Empresa contratada como textos condicionais e a pergunta completa sobre rastreabilidade/validade dos certificados dos padrões quando o laboratório não é acreditado. Novas propostas usam as sete situações operacionais do SCC; valores históricos anteriores continuam legíveis, sem conversão automática.
+
+Na renovação, o servidor compara dados do equipamento, tolerância, documento de referência e unidade com a ficha/certificado aprovado e rejeita alterações. A interface apresenta esses campos somente leitura. Dados destacados do novo certificado, respostas manuais, anexo e vencimento permanecem editáveis. Os textos condicionais acompanham as versões e o Excel.
+
 ## Consulta e acessos
 
 minimal_workspace filtra toda a base autorizada antes da paginação de 50 registros. As contagens abrangem essa base; a exportação consulta todas as páginas do filtro. Vencimentos usam o calendário de America/Recife, com janela explícita de 1–365 dias, inicialmente 30. O vencimento sinaliza a pendência sem alterar automaticamente a situação operacional.
@@ -26,6 +30,6 @@ As tabelas anteriores de eventos, pontos, decisões, laboratórios, padrões, ra
 
 ## Validação e limites
 
-A suíte mínima aplica todas as migrações e testa permissões, bloqueio das APIs legadas, anexos, devolução, aprovação, renovação, isolamento empresarial e paginação. As suítes históricas aplicam o conjunto anterior de migrações para verificar seus contratos originais. A demonstração não persiste dados no banco.
+A suíte mínima aplica todas as migrações e testa permissões, bloqueio das APIs legadas, anexos, devolução, aprovação, renovação, isolamento empresarial e paginação. A suíte de navegador compila e testa o pacote de produção. As suítes históricas aplicam o conjunto anterior de migrações para verificar seus contratos originais. A demonstração não persiste dados no banco.
 
 Não há OCR/IA, checklist avançado, RNC, notificações, QR/etiquetas ou operação offline neste escopo. Login com usuários reais, confirmação de novos acessos, upload e abertura pelo Storage API e QA operacional de perfis continuam pendentes; testes SQL com identidade simulada não substituem a validação autenticada pela interface.

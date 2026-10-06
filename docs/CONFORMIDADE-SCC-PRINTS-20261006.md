@@ -30,3 +30,5 @@ Restrição, empresa contratada e validação dos padrões são exibidas na fich
 Suíte de domínio/banco e navegador cobre campos condicionais, obrigatoriedades, limpeza de valores não aplicáveis, sete situações, independência das respostas, bloqueio de alteração dos dados fixos pelo servidor, aprovação, histórico e Excel. O teste de renovação tenta alterar série, modelo, obra, periodicidade, contratada, referência, tolerância e unidade diretamente pela RPC e verifica a rejeição. As sete situações são enviadas e aprovadas no banco dentro de transação descartada.
 
 Login/upload reais da equipe permanecem uma validação operacional pendente. Testes de demonstração e SQL não equivalem a acesso ao SCC nem a QA com usuários reais.
+
+Entrega publicada: PR #5, código 707b08196ef738b818f56e6c882d7ae8373ea943, 71 testes e 13 cenários de navegador de produção aprovados. Migração remota aplicada e smoke transacional com rollback confirmado. Ver PUBLICACAO-SCC-20261006.md e CHECKPOINT.md.
