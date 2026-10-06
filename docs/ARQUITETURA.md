@@ -1,45 +1,31 @@
-# Arquitetura e isolamento
+# Arquitetura e isolamento — escopo mínimo de 06/10/2026
 
-Frontend: React + TypeScript + Vite. Domínio em `src/domain`; acesso ao banco em `src/services`; formulários em `src/components`. Nada foi importado do runtime do GRCON. A identidade atual é Metrikon, com a logo fornecida pelo proprietário; nenhum recurso de marca GRCON é servido.
+React, TypeScript e Vite. A interface ativa contém somente Cadastro e Monitoramento. SimpleRegistrationForm reúne os campos SCC; domain/minimal.ts concentra cálculo, validação e vencimento; services/minimal-repository.ts usa RPCs com autorização no servidor. A gestão de acessos é uma ação do proprietário no cabeçalho.
 
-## Persistência
+## Cadastro, aprovação e certificado
 
-Instrumento permanente → eventos metrológicos → grupos de grandeza/unidade → pontos de resultado. Cada evento tem checklist, certificado e decisão. O JSON do evento é um snapshot manual e os resultados normalizados são derivados na mesma transação pelo banco. Decisões concluídas não são atualizáveis pelo cliente. Drafts podem ser revisados antes da conclusão.
+instruments conserva a ficha e a LI oficial. instrument_registrations armazena propostas versionadas com os dados cadastrais, certificado, resultado quantitativo calculado pelo servidor, autor, envio, revisão e observação. Existe somente uma versão em andamento por instrumento.
 
-As extensões do cadastro ficam em JSON tipado durante a fundação. Grandezas/faixas, resultados, histórico, ACL e decisões têm tabelas próprias. Extração/OCR não participa da aprovação. A futura arquitetura deve manter entradas extraídas separadas dos dados revisados.
+O rascunho inicial reserva a LI e cria a ficha fora de uso, sem certificado vigente. O envio congela a proposta. O responsável pode devolver com motivo ou aprovar; somente a aprovação aplica os dados da proposta à ficha, às datas e ao certificado vigente. Uma renovação usa a mesma ficha e LI, preservando versões e arquivos anteriores. O bloqueio da ficha e da proposta usa a mesma ordem nas funções de edição e revisão; a aprovação verifica a data da ficha usada pela proposta.
 
-## Tabelas desta fundação
+Novas propostas calculam |erro| + |incerteza| ≤ tolerância, com precisão decimal, conforme a anotação de 06/10. A interface oferece um botão para aplicar a sugestão de aceitação. Respostas manuais, situação operacional e aprovação permanecem decisões explícitas. Eventos históricos mantêm os dados e o critério estrito anterior.
 
-`profiles`, `companies`, `instruments`, `instrument_measurement_capabilities`, `instrument_periodicity_history`, `metrological_events`, `calibration_result_groups`, `calibration_points`, `qualitative_review_items`, `certificates`, `metrological_decisions`, `conditional_use_restrictions`, `audit_log`, `system_settings`.
+## Consulta e acessos
 
-`private.members`, `private.role_permissions`, `private.user_permissions`: autorização independente de perfis editáveis ou JWT de usuário. As seis funções/perfis iniciais existem como valores de domínio; apenas o owner recebe permissões provisórias de bootstrap. Uso condicionado e aceitação de divergências exigem concessão explícita mesmo para owner.
+minimal_workspace filtra toda a base autorizada antes da paginação de 50 registros. As contagens abrangem essa base; a exportação consulta todas as páginas do filtro. Vencimentos usam o calendário de America/Recife, com janela explícita de 1–365 dias, inicialmente 30. O vencimento sinaliza a pendência sem alterar automaticamente a situação operacional.
 
-## Entidades planejadas por fase
+Proprietário (owner) gerencia perfis; Responsável (quality_admin) cadastra e revisa; Cadastro (analyst) prepara e envia; Consulta (viewer, além de papéis legados de consulta) apenas lê. O vínculo pode limitar o acesso à empresa. A concessão de perfil exige usuário Auth existente e e-mail confirmado. Não há criação ou alteração de owner nessa ação, nem autoelevação.
 
-| Fase | Entidades / recursos |
-|---|---|
-| 1, evolução | instrument_types, areas, sectors, processes, locations, instrument_identifiers (atualmente campos tipados distintos na ficha) |
-| 2 | jobs/linhas/mapeamentos de importação da LI, duplicidades e confirmação assistida |
-| 3, implementada | calibration_laboratories (acreditação/escopo/intervalo no snapshot), reference_standards, standard_certificates, event_traceability e event_standard_links; anexo privado e versões imutáveis |
-| 5, evolução | attachments, evidências e verificação de assinatura/tipo de documento |
-| 7, evolução | qualitative_reviews, templates versionados do checklist |
-| 8, evolução | quantitative_reviews e versões de tolerâncias por processo, grandeza e faixa |
-| 11 | equipment_occurrences, impact_assessments, rnc_references (sem workflow inventado da PR 220 43) |
-| 13 | functions, competencies, person_competencies, training_evidences, authorizations |
-| 15 | certificate_extractions e revisão humana da leitura |
-| 16 | notifications e integrações externas autorizadas |
+## Segurança e compatibilidade histórica
 
-## Segurança
+RLS permite leitura apenas com vínculo ativo e escopo autorizado. Alterações passam pelas novas RPCs. Wrappers públicos são SECURITY INVOKER; o núcleo privado usa SECURITY DEFINER, search_path vazio, identificação por auth.uid(), permissão, escopo, bloqueios e auditoria. Escritas diretas nas tabelas permanecem proibidas. As antigas funções de cadastro/importação/eventos e preparação da LI têm execução revogada aos clientes para não contornar a revisão.
 
-Todas as tabelas públicas têm RLS e grants de leitura limitados; alterações operacionais passam por RPC. Os wrappers públicos são SECURITY INVOKER. As funções privadas que efetivamente escrevem são SECURITY DEFINER com `search_path=''`, validação de `auth.uid()`, vínculo ativo, permissão e escopo empresarial. Não há chave privilegiada no frontend nem políticas que autorizem alterações só porque o usuário está autenticado.
+Os certificados usam o bucket privado metrology-certificates, arquivos PDF/XLSX/XLS até 16 MB, caminho vinculado ao instrumento e leitura assinada por 60 segundos. O servidor verifica existência, proprietário ou vínculo histórico autorizado, tamanho e tipo do objeto. O cliente verifica a assinatura do arquivo antes de iniciar a gravação. Não há sobrescrita ou exclusão de certificados aprovados.
 
-Certificados usam bucket privado; nenhum caminho de PDF é publicamente acessível. Sem sobrescrita e sem política de exclusão. A identificação do responsável pela decisão vem do banco. Campos de situação operacional e próxima data do cadastro são protegidos contra alteração direta via RPC de cadastro.
+As tabelas anteriores de eventos, pontos, decisões, laboratórios, padrões, rastreabilidade e importação permanecem preservadas. A ficha lê eventos anteriores como histórico. Os formulários e módulos antigos saíram da interface ativa; a manutenção dos arquivos e tabelas não autoriza retomar o roteiro anterior de 19 fases.
 
-## Limites conhecidos desta primeira entrega
+## Validação e limites
 
-- Dashboard conta toda a base autorizada; lista de pendências ainda usa a página atual na produção, com aviso explícito. A fase 10 terá filtros/consultas próprios e todas as categorias.
-- Busca atual utiliza ILIKE para permitir correspondência de identificações parciais. Índices de código/TAG/série/empresa/status/data estão presentes; índice FTS está preparado, mas a pesquisa geral ainda não usa FTS. A busca por conteúdo parcial precisa de pg_trgm e medição na fase de desempenho para bases grandes.
-- Auditoria exibida limitada aos últimos 100 registros. Exportação integral/paginada de auditoria entra na fase 14.
-- Estado “a vencer” não assume um limiar RHDD; dashboard expõe janelas explícitas de 7/30/60 dias.
-- Manifest preparado, mas PWA instalável/service worker/offline operacional ainda não concluídos.
-- Sem consumo de IA, OCR, Teams, e-mail ou vídeos. Sem política automática de prazo ou periodicidade.
+A suíte mínima aplica todas as migrações e testa permissões, bloqueio das APIs legadas, anexos, devolução, aprovação, renovação, isolamento empresarial e paginação. As suítes históricas aplicam o conjunto anterior de migrações para verificar seus contratos originais. A demonstração não persiste dados no banco.
+
+Não há OCR/IA, checklist avançado, RNC, notificações, QR/etiquetas ou operação offline neste escopo. Login com usuários reais, confirmação de novos acessos, upload e abertura pelo Storage API e QA operacional de perfis continuam pendentes; testes SQL com identidade simulada não substituem a validação autenticada pela interface.

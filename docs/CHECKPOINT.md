@@ -1,41 +1,40 @@
-# Checkpoint de continuidade — 05/10/2026
+# Checkpoint de continuidade — 06/10/2026
 
 ## Estado atual
-Metrikon publicado em https://metrikon.grcon-qualidade.workers.dev/. Código servido: `d5f1b9f827ba26e6a4d761c368bee39630f670ff`; Cloudflare version ID: `0c98096f-ceb5-48f6-b39f-254aba4d3ec0`. PR #3 integrada à main e publicação aprovada: https://github.com/dw-glitch/GRCON/actions/runs/37352167598. Detalhes em docs/PUBLICACAO-FASE-3-20261005.md.
+Metrikon mínimo publicado em https://metrikon.grcon-qualidade.workers.dev/. Código servido: `7b87db48900336ab13b7fb431ca32921a0896207`; Cloudflare version ID: `eba635a6-b2cd-42b4-b0f5-081e3dd77761`. PR #4 integrada: https://github.com/dw-glitch/Metrikon/pull/4. CI: https://github.com/dw-glitch/Metrikon/actions/runs/37442405281. Publicação: https://github.com/dw-glitch/GRCON/actions/runs/37443103042. Ver PUBLICACAO-MINIMO-20261006.md.
 
-Fases 1–3 implementadas e publicadas. A fase 3 adiciona laboratórios/padrões, certificados permanentes versionados, anexos privados e vínculos com snapshots/validade na data do evento. O cadastro atual, LI automática e decisões humanas independentes foram preservados. Login/upload real do proprietário pela interface e QA operacional continuam pendentes.
+O comando de Vinício e a anotação do responsável substituem o roteiro anterior de 19 fases. A interface tem somente **Cadastro** e **Monitoramento**, com gestão de acessos no cabeçalho do proprietário. Plano vigente: PLANO-MINIMO-20261006.md. Não iniciar automaticamente outra fase nem reintroduzir módulos avançados.
 
-## Regras obrigatórias
-- Cadastro conforme as imagens do procedimento atual, somente com os campos documentados em docs/COMPATIBILIDADE-CADASTRO-ATUAL-20261005.md.
-- Não reintroduzir Código interno RHDD ou campos genéricos no formulário sem instrução expressa de Vinício.
-- Número LI automático pelo banco, seguindo a ordem da referência oficial. No checkpoint: próximo CE-5290.00-22313-856-C1O-843, linha 850.
-- Edição preserva o número; importação vincula os números existentes na LI; falha transacional não consome a sequência.
-- Laboratório acreditado, Calibração aceita, Aceito com restrição, Status do cadastro e Situação do equipamento são dados independentes.
-- Regra quantitativa estrita: |Erro| + |Incerteza| < Tolerância. Nenhuma conversão automática.
-- Mudanças nos campos, obrigatoriedades e critérios dependem de determinação do proprietário.
-- Não iniciar outra fase automaticamente.
+## Regras vigentes
+- Cadastro somente com os campos SCC documentados em COMPATIBILIDADE-CADASTRO-ATUAL-20261005.md, reunindo equipamento e calibração em uma tela.
+- Não reintroduzir Código interno RHDD, fabricante, TAG ou campos genéricos sem novo comando.
+- LI automática pela referência oficial; próximo CE-5290.00-22313-856-C1O-843, linha 850. O rascunho inicial reserva o número; correções e renovações preservam a LI. Falha transacional não consome a sequência.
+- Novos cadastros/renovações usam |Erro| + |Incerteza| **≤** Tolerância, conforme a anotação de 06/10. Históricos conservam seus dados e critérios, sem reavaliação automática.
+- Sugestão de aceitação aplicada por botão explícito. Laboratório acreditado, Calibração aceita, Aceito com restrição, Status do cadastro e Situação do equipamento são independentes.
+- Rascunho → aguardando aprovação → aprovado ou devolvido com motivo. Cadastro prepara e envia; Responsável revisa; Consulta lê; Proprietário administra acessos.
+- Atualizar certificado cria outra versão na mesma ficha. Certificado vigente e datas só mudam após aprovação; arquivos e versões anteriores são conservados.
+- Monitoramento consulta toda a base autorizada, pesquisa, pagina, filtra vencimentos e exporta todas as páginas do filtro.
+- APIs anteriores de escrita estão revogadas para clientes; não reativá-las sem preservar o controle de aprovação.
 
 ## Repositório, publicação e banco
-Repositório: dw-glitch/Metrikon. Deploy isolado via .github/workflows/deploy-metrikon-cloudflare.yml, branch infra/metrikon-cloudflare-deploy de dw-glitch/GRCON. Worker: metrikon. A rotina fixa o SHA validado e não publica automaticamente toda alteração da main. Não alterar main/Worker GRCON para esta entrega.
+Repositório: dw-glitch/Metrikon. Deploy isolado pelo arquivo .github/workflows/deploy-metrikon-cloudflare.yml, branch infra/metrikon-cloudflare-deploy de dw-glitch/GRCON. Worker: metrikon. Código fixado pelo SHA validado; não publicar automaticamente toda a main. Main/Worker GRCON não foram alterados.
 
-Supabase independente CCP CONSAG, ref aimvjsbrxnyqjurgicec, nove migrações remotas. Proprietário real vinicio.silva@agnet.com.br já criado, confirmado e ativo. Não recriar conta, pedir senha no chat, criar outro projeto ou usar ConsagVINI.
+Supabase independente CCP CONSAG, ref aimvjsbrxnyqjurgicec, dez migrações remotas. Proprietário vinicio.silva@agnet.com.br existente, confirmado e ativo. Não recriar conta, pedir senha no chat, criar outro projeto ou usar ConsagVINI.
 
-Migração da LI: 20261005171946_li_number_auto_assignment; arquivo local: 20261005163000_li_number_auto_assignment.sql. master_data_li_import também tem timestamps históricos local/remoto diferentes. Não reaplicar migrações existentes por causa dessas diferenças.
+Nova migração remota: **20261006092211_minimalist_registration_monitoring**; arquivo local: **20261006090041_minimalist_registration_monitoring.sql**. Diferenças históricas local/remoto da LI, importação e rastreabilidade continuam documentadas nas publicações anteriores. Não reaplicar migrações por diferenças nos timestamps.
 
-Migração fase 3 remota: 20261005175539_laboratories_standards_traceability; arquivo local: 20261005172922_laboratories_standards_traceability.sql. Cinco tabelas com RLS, três RPCs públicas de cadastro e bucket privado metrology-standard-certificates. Não expor nem conceder execução ao núcleo antigo private.save_metrological_event_phase2.
+Após smoke com rollback: oito empresas, 842 entradas da LI (733 originais e 109 planejadas), zero instrumentos, zero propostas e próximo número 843/linha 850. Nenhum certificado ou metadado fictício do teste permaneceu. Históricos e tabelas anteriores não foram apagados.
 
-Referência oficial armazenada: 733 códigos originais (001–733) e 109 linhas planejadas (734–842). O banco conserva oito empresas da LI, 842 entradas, zero instrumentos e zero entradas vinculadas no fim desta entrega. Nenhum fixture do smoke transacional permaneceu. Laboratórios, padrões, certificados de padrões e snapshots também terminaram vazios após rollback.
+## Validação
+69 testes de domínio/PostgreSQL, TypeScript/Vite, Wrangler dry-run e 11 cenários Chromium aprovados localmente e no CI. Cadastro/devolução/aprovação/renovação, Excel filtrado, perfis, desktop e celular verificados, sem overflow ou erros JavaScript. A suíte mínima aplica todas as migrações; as antigas verificam os contratos históricos, com o bloqueio das APIs antigas coberto pela suíte nova.
 
-## Funcionalidades e validação
-Identidade e logo Metrikon, dashboard, busca, ficha, Excel filtrado, empresas, cadastro conforme referência, catálogos auxiliares, anexos privados, importação XLSX/XLS/CSV em Worker com mapeamento/prévia/duplicados/confirmação e lotes idempotentes. Fotos/documentos cadastrais e certificados do ciclo usam buckets privados separados.
+Smoke SQL remoto com papel authenticated e identidade do proprietário validou a regra ≤, LI, anexo, envio, devolução, aprovação, renovação e conservação de ambas as versões. Metadados de Storage foram fixtures SQL dentro da transação, não upload físico pelo Storage API. Rollback e sequência preservada confirmados. Advisors de segurança sem novos avisos em relação ao baseline.
 
-Fluxo manual de calibração/verificação preserva os campos atuais, anexos PDF/XLSX/XLS até 16 MB, checklist, cálculo estrito e decisão humana. Rascunhos não alteram situação; ciclos concluídos são imutáveis. Vínculos complementares com laboratório e versões dos certificados de padrões agora preservam validade e referências históricas. Renovação/inativação não reescreve o histórico; escopo e rastreabilidade exigem conferência humana. A ampliação operacional das fases futuras ainda está pendente.
+Pós-deploy: SHA público conferido, HTTP, rota SPA, logo, manifesto, login desktop/mobile e demonstração com exatamente duas abas aprovados. Evidências preservadas nas execuções GitHub.
 
-59 testes de domínio/PostgreSQL, build TypeScript/Vite, Wrangler dry-run e 16 grupos Chromium passaram localmente e no GitHub. Desktop e mobile testados sem overflow; zero erros JavaScript. Smoke SQL remoto pós-migração com papel authenticated e identidade do proprietário validou RPCs, versões, snapshot recalculado, validade histórica, renovação sem reescrita e LI preservada; rollback confirmado. Testes locais PostgreSQL cobrem conclusão imutável e isolamento. Pós-deploy público e metadados do SHA servido aprovados. Evidências anexadas às execuções GitHub.
+## Pendências reais e contexto histórico
+Login real do proprietário/equipe, criação/confirmação de novos acessos, concessão de perfis pela interface, upload/leitura assinada pelo Storage API e isolamento operacional entre empresas continuam pendentes. Não declarar QA autenticado concluído com base na demonstração ou no smoke SQL.
 
-## Amostras e pendências
-14 PDFs individuais de certificados foram examinados em entregas anteriores, incluindo modelos HI-LO, calibres de solda, calibrador elétrico e conjunto digitalizado. Os dois ZIPs grandes retornaram 502 e não foram analisados. Não declarar leitura integral desses ZIPs. Originais e dados pessoais não foram publicados no Git nem cadastrados automaticamente. Ver docs/REQUISITOS-CERTIFICADOS.md.
+14 PDFs individuais foram examinados em entregas anteriores. Os dois ZIPs grandes retornaram 502 e não foram analisados integralmente. Originais e dados pessoais não foram publicados ou cadastrados automaticamente; ver REQUISITOS-CERTIFICADOS.md.
 
-Pendências operacionais: login real do proprietário, upload e reabertura assinada pela interface, isolamento entre empresas, expiração de URLs e QA de importação real. Parâmetros RHDD, responsáveis/autorização, critérios/periodicidades, RNC PR CONSAG 220 43, etiquetas, notificações e vídeos oficiais continuam nos checkpoints futuros.
-
-Próxima fase de desenvolvimento: fase 4 — eventos metrológicos, preservando o cadastro atual e os vínculos históricos da fase 3. Implementar somente mediante novo comando. Não reiniciar as fases anteriores nem declarar QA autenticado ou fases futuras como concluídos.
+O roteiro de fases 4–18, importação operacional, laboratórios/padrões como módulos, checklist avançado, RNC, notificações, OCR/IA, etiquetas/QR e vídeos deixou de ser o próximo objetivo. Qualquer retomada depende de novo comando. Próximo passo operacional: validar o fluxo mínimo com acessos e certificados reais, sem acrescentar abas.
