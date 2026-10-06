@@ -40,4 +40,6 @@ O plano anterior de módulos avançados está substituído, sem desenvolvimento 
 QA autenticado pela interface permanece pendente: proprietário, criação/confirmação de novo usuário, concessão de perfis, upload/abertura assinada no Storage API e operação com certificados reais. Testes SQL transacionais e demonstração não equivalem a essa validação.
 
 ## Entrega publicada
+Os três prints adicionais do responsável detalham campos condicionais e situações SCC. A aplicação vigente deve respeitar CONFORMIDADE-SCC-PRINTS-20261006.md: Restrição e Empresa contratada condicionais; pergunta dos padrões destacada quando o laboratório não é acreditado; sete situações SCC; identificação e parâmetros fixos preservados na renovação. São ajustes ao escopo mínimo, sem novas abas.
+
 Implementação mínima publicada em 06/10/2026, PR #4, com 69 testes e 11 cenários de navegador aprovados. Migração aplicada ao projeto independente CCP CONSAG e smoke transacional descartado com rollback. Publicação e limites da validação em PUBLICACAO-MINIMO-20261006.md; continuidade em CHECKPOINT.md.
