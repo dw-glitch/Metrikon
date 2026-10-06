@@ -87,7 +87,7 @@ export default function SimpleRegistrationForm({initial,li,busy,reviewOnly,onSav
   if(!approve&&!notes.trim()){setNotesError('Informe o motivo da devolução.');focusFirstError();return;}
   try{await onReview(approve,notes);}catch(e){setFormError((e as Error).message);}
  }
- return <form ref={formRef} className="wizard simple-form" onSubmit={e=>{e.preventDefault();save(true);}}>
+ return <form ref={formRef} className="wizard simple-form" noValidate onSubmit={e=>{e.preventDefault();save(true);}}>
   <div className="wizard-body">
    <div className="registration-intro">
     <p className="simple-li"><strong>{i.liNumber||'Número LI automático'}</strong><small>{i.liNumber?`Linha ${i.liSource?.row||'—'} da LI`:`Próximo previsto: ${li?.nextCode||'aguardando referência'} · linha ${li?.nextRow||'—'}`}</small></p>
