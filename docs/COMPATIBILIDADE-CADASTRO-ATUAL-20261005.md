@@ -48,7 +48,7 @@ O ciclo metrológico mantém os campos da mesma referência operacional: Entidad
 
 Laboratório acreditado, Calibração aceita, Aceito com restrição, Status do cadastro e Situação do equipamento permanecem registros independentes. Nenhum deles deve ser automaticamente inferido de outro.
 
-A regra quantitativa continua estrita: **`|Erro| + |Incerteza| < Tolerância`**. Igualdade é não conforme e tolerância zero é inválida.
+Atualização autorizada por Vinício em 06/10/2026: no novo fluxo mínimo, a anotação do responsável determina **`|Erro| + |Incerteza| ≤ Tolerância`**; igualdade é conforme. Tolerância zero continua inválida. Eventos anteriores mantêm seu critério originalmente registrado, sem reavaliação automática. A sugestão de aceitação é aplicada por ação explícita e o responsável aprova ou devolve o cadastro. Ver docs/PLANO-MINIMO-20261006.md.
 
 ## Anexos
 
