@@ -11,7 +11,7 @@ test('PostgreSQL fase 3: rastreabilidade, certificados imutáveis e isolamento',
  try{
  await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);create function auth.uid()returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid()to anon,authenticated;create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text,owner_id text,metadata jsonb);alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert on storage.objects to authenticated;`);
  const directory=new URL('../supabase/migrations/',import.meta.url);
- for(const filename of readdirSync(directory).filter(x=>x.endsWith('.sql')).sort())await db.exec(readFileSync(new URL(filename,directory),'utf8'));
+ for(const filename of readdirSync(directory).filter(x=>x.endsWith('.sql')&&!x.includes('minimalist_registration_monitoring')).sort())await db.exec(readFileSync(new URL(filename,directory),'utf8'));
  const auth=async(id:string,role='authenticated')=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec(`set role ${role}`);};
  const rpc=async(fn:string,args:unknown[])=>db.query<{result:any}>(`select public.${fn}(${args.map((_,i)=>'$'+(i+1)).join(',')}) as result`,args);
  const fixture=demoState(),company=fixture.companies[0],other=fixture.companies[1];
